@@ -586,7 +586,7 @@ document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () =>
 // 1. Sigue las instrucciones en el comentario al final de este fichero para
 //    crear el Apps Script y obtener tu URL.
 // 2. Pega la URL aquí:
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2MlYyUuTS5YaSrcWUCfr4-zJmlKcdNqj7V4VrSQ6UlqGRzi5fKGVp8-kDzCdaqQwB/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_yfyQhOjZfgvxMT3FZQ-3gKN-6jC1Lc0P6BftxUycIAK1bmlHuYc2obYSjKfv-C5wyQ/exec';
 // ──────────────────────────────────────────────────────────────────────────────
 
 document.getElementById('f-fecha').value = new Date().toISOString().slice(0,10);
@@ -611,7 +611,7 @@ function addRowFromData(d) {
 
 // Cargar formaciones nuevas desde Google Sheets al abrir la página
 function cargarDesdeSheets() {
-  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbz2MlYyUuTS5YaSrcWUCfr4-zJmlKcdNqj7V4VrSQ6UlqGRzi5fKGVp8-kDzCdaqQwB/exec') return;
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbw_yfyQhOjZfgvxMT3FZQ-3gKN-6jC1Lc0P6BftxUycIAK1bmlHuYc2obYSjKfv-C5wyQ/exec') return;
   fetch(APPS_SCRIPT_URL)
     .then(r => r.json())
     .then(list => {
@@ -640,7 +640,7 @@ form.addEventListener('submit', e => {
     tipo: document.getElementById('f-tipo').value
   };
 
-  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbz2MlYyUuTS5YaSrcWUCfr4-zJmlKcdNqj7V4VrSQ6UlqGRzi5fKGVp8-kDzCdaqQwB/exec') {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbw_yfyQhOjZfgvxMT3FZQ-3gKN-6jC1Lc0P6BftxUycIAK1bmlHuYc2obYSjKfv-C5wyQ/exec') {
     // Sin Sheets configurado: solo añade localmente
     const tr = document.createElement('tr');
     tr.innerHTML = `<td>${data.cliente}</td><td>${data.formador}</td><td>${data.formador}</td><td>${data.fecha}</td><td>${data.caso||'Sin ticket'}</td><td>${data.tipo}</td>`;
