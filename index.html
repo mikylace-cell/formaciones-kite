@@ -582,24 +582,24 @@ document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () =>
   document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
 }));
 
-// ─── CONFIGURACIÓN GOOGLE SHEETS ──────────────────────────────────────────────
-// 1. Sigue las instrucciones en el comentario al final de este fichero para
-//    crear el Apps Script y obtener tu URL.
-// 2. Pega la URL aquí:
+// ─── CONFIGURACIÓN ────────────────────────────────────────────────────────────
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_yfyQhOjZfgvxMT3FZQ-3gKN-6jC1Lc0P6BftxUycIAK1bmlHuYc2obYSjKfv-C5wyQ/exec';
 // ──────────────────────────────────────────────────────────────────────────────
 
 document.getElementById('f-fecha').value = new Date().toISOString().slice(0,10);
+document.getElementById('btn-export').style.display = 'none';
+
 const fTipo = document.getElementById('f-tipo');
+const form  = document.getElementById('form-nueva');
+const msg   = document.getElementById('form-msg');
+const caso  = document.getElementById('f-caso');
+
 function syncCasoRequired() {
   const need = fTipo.value !== 'Enviada videoformación';
   caso.required = need;
   document.querySelector('label[for=f-caso]').innerHTML = 'Caso asociado' + (need ? ' *' : '');
 }
 fTipo.addEventListener('change', syncCasoRequired);
-const form = document.getElementById('form-nueva');
-const msg = document.getElementById('form-msg');
-const caso = document.getElementById('f-caso');
 caso.addEventListener('input', () => { caso.value = caso.value.toUpperCase(); });
 syncCasoRequired();
 
@@ -609,25 +609,25 @@ function addRowFromData(d) {
   (SIN_RE.test(tr.textContent) ? tbody2 : tbody).appendChild(tr);
 }
 
-// Cargar formaciones nuevas desde Google Sheets al abrir la página
-function cargarDesdeSheets() {
-  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGA_AQUI_LA_URL_DE_TU_APPS_SCRIPT') return;
-  fetch(APPS_SCRIPT_URL)
-    .then(r => r.json())
-    .then(list => {
-      list.forEach(addRowFromData);
-      sortRows(); update(); update2();
-    })
-    .catch(() => {});
+function resetForm() {
+  form.reset();
+  document.getElementById('f-fecha').value = new Date().toISOString().slice(0,10);
+  document.getElementById('f-tipo').value = 'Presencial';
+  syncCasoRequired();
 }
-cargarDesdeSheets();
 
-// Enviar nueva formación a Google Sheets
+// Cargar entradas nuevas desde Sheets al abrir
+fetch(APPS_SCRIPT_URL)
+  .then(r => r.json())
+  .then(list => { list.forEach(addRowFromData); sortRows(); update(); update2(); })
+  .catch(() => {});
+
+// Guardar nueva formación
 form.addEventListener('submit', e => {
   e.preventDefault();
   msg.className = 'msg';
   if (!form.checkValidity()) {
-    msg.textContent = 'Revisa los campos: todos son obligatorios y el caso debe tener formato CS + 7 dígitos.';
+    msg.textContent = 'Revisa los campos obligatorios.';
     msg.classList.add('err');
     form.reportValidity();
     return;
@@ -635,26 +635,10 @@ form.addEventListener('submit', e => {
   const data = {
     cliente: document.getElementById('f-cliente').value.trim(),
     formador: document.getElementById('f-formador').value.trim(),
-    fecha: document.getElementById('f-fecha').value,
-    caso: caso.value.trim(),
-    tipo: document.getElementById('f-tipo').value
+    fecha:    document.getElementById('f-fecha').value,
+    caso:     caso.value.trim(),
+    tipo:     fTipo.value
   };
-
-  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGA_AQUI_LA_URL_DE_TU_APPS_SCRIPT') {
-    // Sin Sheets configurado: solo añade localmente
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${data.cliente}</td><td>${data.formador}</td><td>${data.formador}</td><td>${data.fecha}</td><td>${data.caso||'Sin ticket'}</td><td>${data.tipo}</td>`;
-    (SIN_RE.test(tr.textContent) ? tbody2 : tbody).appendChild(tr);
-    sortRows(); update(); update2();
-    form.reset();
-    document.getElementById('f-fecha').value = new Date().toISOString().slice(0,10);
-    document.getElementById('f-tipo').value = 'Presencial';
-    syncCasoRequired();
-    msg.textContent = '⚠️ Google Sheets no configurado. Formación añadida solo localmente (se perderá al cerrar).';
-    msg.classList.add('err');
-    return;
-  }
-
   const btn = form.querySelector('button[type=submit]');
   btn.disabled = true;
   msg.textContent = 'Guardando...';
@@ -662,24 +646,16 @@ form.addEventListener('submit', e => {
 
   fetch(APPS_SCRIPT_URL, {
     method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(data)
   })
-  .then(r => r.json())
-  .then(res => {
-    if (res.result === 'ok') {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${data.cliente}</td><td>${data.formador}</td><td>${data.formador}</td><td>${data.fecha}</td><td>${data.caso||'Sin ticket'}</td><td>${data.tipo}</td>`;
-      (SIN_RE.test(tr.textContent) ? tbody2 : tbody).appendChild(tr);
-      sortRows(); update(); update2();
-      form.reset();
-      document.getElementById('f-fecha').value = new Date().toISOString().slice(0,10);
-      document.getElementById('f-tipo').value = 'Presencial';
-      syncCasoRequired();
-      msg.textContent = '✅ Formación guardada en Google Sheets y visible para todos.';
-      msg.classList.add('ok');
-    } else {
-      throw new Error(res.error || 'Error desconocido');
-    }
+  .then(() => {
+    addRowFromData(data);
+    sortRows(); update(); update2();
+    resetForm();
+    msg.textContent = '✅ Formación guardada en Google Sheets y visible para todos.';
+    msg.className = 'msg ok';
   })
   .catch(err => {
     msg.textContent = '❌ Error al guardar: ' + err.message;
@@ -687,93 +663,6 @@ form.addEventListener('submit', e => {
   })
   .finally(() => { btn.disabled = false; });
 });
-
-// Botón exportar (mantenido por compatibilidad)
-document.getElementById('btn-export').style.display = 'none';
 </script>
-<!--
-═══════════════════════════════════════════════════════════════════════════════
- INSTRUCCIONES: CONECTAR CON GOOGLE SHEETS (hazlo una vez, ~15 minutos)
-═══════════════════════════════════════════════════════════════════════════════
-
-PASO 1 — Crear la hoja de Google Sheets
-  1. Ve a https://sheets.google.com y crea una hoja nueva.
-  2. Llámala "Formaciones Kite" (o como quieras).
-  3. En la fila 1 escribe estas cabeceras exactas en las columnas A-E:
-     A1: cliente   B1: formador   C1: fecha   D1: caso   E1: tipo
-
-PASO 2 — Crear el Apps Script (el "servidor" gratuito)
-  1. En la hoja, ve al menú: Extensiones → Apps Script
-  2. Borra todo el código que aparece y pega EXACTAMENTE esto:
-
-─────────────────────────────────────────────────────────────────────────────
-function doGet(e) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Formaciones');
-  const data = sheet.getDataRange().getValues();
-  const headers = data[0];
-  const rows = data.slice(1).map(row => {
-    const obj = {};
-    headers.forEach((h, i) => obj[h] = row[i]);
-    return obj;
-  });
-  return ContentService
-    .createTextOutput(JSON.stringify(rows))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-function doPost(e) {
-  try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Formaciones');
-    const data = JSON.parse(e.postData.contents);
-    sheet.appendRow([
-      data.cliente || '',
-      data.formador || '',
-      data.fecha || '',
-      data.caso || '',
-      data.tipo || ''
-    ]);
-    return ContentService
-      .createTextOutput(JSON.stringify({ result: 'ok' }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ result: 'error', error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-─────────────────────────────────────────────────────────────────────────────
-
-  3. IMPORTANTE: en el código cambia 'Formaciones' por el nombre exacto
-     de tu pestaña en Sheets (por defecto se llama "Hoja 1", así que
-     cambia 'Formaciones' → 'Hoja 1', o renombra la pestaña a 'Formaciones').
-
-PASO 3 — Publicar el script como endpoint web
-  1. Haz clic en "Implementar" → "Nueva implementación"
-  2. Tipo: "Aplicación web"
-  3. Descripción: "Formaciones API"
-  4. Ejecutar como: "Yo (tu cuenta Google)"
-  5. Quién tiene acceso: "Cualquier persona"  ← importante
-  6. Haz clic en "Implementar"
-  7. Copia la URL que aparece (empieza por https://script.google.com/macros/s/...)
-
-PASO 4 — Pegar la URL en este fichero HTML
-  1. Abre este fichero HTML con un editor de texto (Notepad, VS Code, etc.)
-  2. Busca la línea:  const APPS_SCRIPT_URL = 'PEGA_AQUI_LA_URL_DE_TU_APPS_SCRIPT';
-  3. Sustituye PEGA_AQUI_LA_URL_DE_TU_APPS_SCRIPT por la URL del paso anterior
-  4. Guarda el fichero.
-
-PASO 5 — Compartir
-  - Comparte el fichero HTML con tus compañeros (por correo, Teams, SharePoint...).
-  - Todos los que lo abran verán las mismas formaciones y podrán añadir nuevas.
-  - Los datos nuevos aparecen también en la hoja de Sheets en tiempo real.
-
-NOTAS:
-  - Las formaciones que ya están en el HTML (las históricas) siguen ahí siempre.
-  - Las formaciones nuevas añadidas via formulario se guardan en Sheets y se
-    cargan automáticamente al abrir el fichero.
-  - Si quieres pasar las históricas a Sheets también, puedes copiarlas
-    manualmente desde el Excel original.
-═══════════════════════════════════════════════════════════════════════════════
--->
 </body>
 </html>
