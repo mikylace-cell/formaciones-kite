@@ -611,7 +611,7 @@ function addRowFromData(d) {
 
 // Cargar formaciones nuevas desde Google Sheets al abrir la página
 function cargarDesdeSheets() {
-  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbw_yfyQhOjZfgvxMT3FZQ-3gKN-6jC1Lc0P6BftxUycIAK1bmlHuYc2obYSjKfv-C5wyQ/exec') return;
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGA_AQUI_LA_URL_DE_TU_APPS_SCRIPT') return;
   fetch(APPS_SCRIPT_URL)
     .then(r => r.json())
     .then(list => {
@@ -640,7 +640,7 @@ form.addEventListener('submit', e => {
     tipo: document.getElementById('f-tipo').value
   };
 
-  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbw_yfyQhOjZfgvxMT3FZQ-3gKN-6jC1Lc0P6BftxUycIAK1bmlHuYc2obYSjKfv-C5wyQ/exec') {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'PEGA_AQUI_LA_URL_DE_TU_APPS_SCRIPT') {
     // Sin Sheets configurado: solo añade localmente
     const tr = document.createElement('tr');
     tr.innerHTML = `<td>${data.cliente}</td><td>${data.formador}</td><td>${data.formador}</td><td>${data.fecha}</td><td>${data.caso||'Sin ticket'}</td><td>${data.tipo}</td>`;
