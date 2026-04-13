@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Calendario Formaciones Kite</title>
+<style>
+body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; color: #333; margin: 20px; }
+h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+.container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: max-content; min-width: calc(100vw - 40px); box-sizing: border-box; }
+.sticky-head { position: sticky; top: 0; background: white; z-index: 20; padding-top: 10px; margin-top: -10px; }
+.toolbar { margin: 15px 0; display: flex; gap: 10px; align-items: center; position: sticky; top: var(--head-h, 0px); background: white; z-index: 15; padding: 10px 0; }
+input[type=search] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; flex: 1; max-width: 400px; }
+table { width: auto; border-collapse: collapse; margin-top: 10px; font-size: 0.92em; }
+th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eee; white-space: nowrap; }
+tbody td:first-child { text-transform: uppercase; }
+th { background-color: #3498db; color: white; position: sticky; top: var(--thead-top, 0px); cursor: pointer; z-index: 10; }
+tr:nth-child(even) { background: #fafbfc; }
+tr:hover { background-color: #eef6fc; }
+.count { color: #7f8c8d; font-size: 0.9em; }
+.tabs { display: flex; gap: 4px; border-bottom: 2px solid #3498db; margin-top: 10px; }
+.tab { padding: 10px 18px; cursor: pointer; background: #ecf0f1; border: none; border-radius: 6px 6px 0 0; font-size: 0.95em; }
+.tab.active { background: #3498db; color: white; font-weight: bold; }
+.panel { display: none; padding-top: 15px; }
+.panel.active { display: block; }
+.form-grid { display: grid; grid-template-columns: 180px 1fr; gap: 12px 15px; max-width: 600px; align-items: center; }
+.form-grid label { font-weight: 600; }
+.form-grid input, .form-grid select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95em; width: 100%; box-sizing: border-box; }
+.form-grid input:invalid:not(:placeholder-shown) { border-color: #e74c3c; }
+.form-actions { margin-top: 18px; }
+.btn-primary { background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 0.95em; }
+.btn-primary:hover { background: #2980b9; }
+.msg { margin-top: 12px; padding: 10px; border-radius: 4px; display: none; }
+.msg.ok { background: #d4efdf; color: #1e7e4a; display: block; }
+.msg.err { background: #fadbd8; color: #a93226; display: block; }
+.hint { font-size: 0.82em; color: #7f8c8d; grid-column: 2; margin-top: -8px; }
+</style>
+</head>
+<body>
+<div class="container">
+<div class="sticky-head">
+<h1>Calendario Formaciones</h1>
+<div class="tabs">
+<button class="tab active" data-tab="listado">Formaciones realizadas</button>
+<button class="tab" data-tab="sin">Sin presentarse</button>
+<button class="tab" data-tab="nueva">+ Nueva Formación</button>
+</div>
+</div>
+<div class="panel active" id="panel-listado">
+<div class="toolbar">
+<input type="search" id="q" placeholder="Filtrar por cliente, formador, fecha...">
+<span class="count" id="count"></span>
+</div>
+<div class="tbl-wrap"><table id="tbl">
+<thead><tr><th>Cliente</th><th>Formador</th><th>Cambios</th><th>Cuándo</th><th>TicketID</th><th>Tipo de formación</th></tr></thead>
+<tbody>
+<tr><td>Antena Lasser</td><td>Clara Garcia</td><td>Clara Garcia</td><td>2022-08-03</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>Sigma Cognition</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2022-08-09</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>EHANG</td><td>Clara Garcia</td><td>Clara Garcia</td><td>2022-08-18</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>APM TERMINALS GIJON SL</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2022-08-24</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>Canal Imperial de Aragon (viene de un Kit)</td><td>Rita Hermoso</td><td>Rita Hermoso</td><td>2022-09-06</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>Fontventa</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2022-09-07</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>REPSOL BUTANO S.A.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2022-09-16</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>Detectar S.A.</td><td>Clara Garcia</td><td>Clara Garcia</td><td>2022-09-19</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>DIPUTACION PROVINCIAL DE PONTEVEDRA</td><td>Rita Hermoso</td><td>Rita Hermoso</td><td>2022-09-22</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>APM TERMINALS BARCELONA S.L.U.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2022-09-28</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>Conforama</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2022-10-03</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>ACCIONA GIJON UTE</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2022-10-05</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>Demo Nuuk</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2022-10-10</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>Cool Chain Logistic</td><td>Rita Hermoso</td><td>Rita Hermoso</td><td>2022-10-24</td><td>uDO 489535</td><td>Presencial</td></tr>
+<tr><td>Securitas Seguridad</td><td>Preventa</td><td>Preventa</td><td>2022-10-26</td><td>uDO 487504</td><td>Presencial</td></tr>
+<tr><td>Orenes Grupo</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2022-10-27</td><td></td><td></td></tr>
+<tr><td>Gestión y técnicas del agua SA</td><td>Preventa</td><td>Preventa</td><td>2022-11-16</td><td>uDO 489950</td><td>Presencial</td></tr>
+<tr><td>GLOBAL MEDIA &amp; ENTERTAINMENT S.A.U.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2022-11-17</td><td></td><td></td></tr>
+<tr><td>Reques e Hijos S.L.</td><td>Clara García</td><td>Clara García</td><td>2022-11-25</td><td></td><td></td></tr>
+<tr><td>Conexiona Telecom S.L.</td><td>Rita Hermoso</td><td>Rita Hermoso</td><td>2022-12-02</td><td>uDO 497871</td><td>Presencial</td></tr>
+<tr><td>WEBFLEET SOLUTIONS SPAIN S.L.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2022-12-09</td><td></td><td></td></tr>
+<tr><td>UTE CORUÑA NORTE/SUR</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2022-12-14</td><td></td><td></td></tr>
+<tr><td>CODERE APUESTAS</td><td>Rita Hermoso</td><td>Rita Hermoso</td><td>2022-12-15</td><td>uDO 502434</td><td>Presencial</td></tr>
+<tr><td>Electricidad Viala S.L.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2022-12-20</td><td>uDO 504324</td><td>Presencial</td></tr>
+<tr><td>C&amp;B SEÑOR</td><td>Alfonso Moreno</td><td>Ionut Madalin</td><td>2023-01-04</td><td>uDO 582594</td><td>Presencial</td></tr>
+<tr><td>RODAMIENTOS Y SERVICIOS S.L.</td><td>Christopher Conde</td><td>Ionut Madalin</td><td>2023-01-09</td><td>uDO 582351</td><td>Presencial</td></tr>
+<tr><td>HANWHA ENERGY RETAIL SPAIN S.L.U.</td><td>Clara Garcia</td><td>Clara Garcia</td><td>2023-01-17</td><td>uDO 504390</td><td>Presencial</td></tr>
+<tr><td>GPS SEGURIMOVIL S.C.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-01-19</td><td>uDO 502661</td><td>Presencial</td></tr>
+<tr><td>RADIO TAXI BENIDORM</td><td>Clara Garcia</td><td>Clara Garcia</td><td>2023-02-01</td><td></td><td></td></tr>
+<tr><td>HIDROELEC. LARACHA (Alarmas)</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-02-01</td><td></td><td></td></tr>
+<tr><td>EROSKI SOCIEDAD COOPERATIVA (Alarmas)</td><td>Omar Afchoun</td><td>Alfonso Moreno</td><td>2023-02-08</td><td>uDO 511520</td><td>Presencial</td></tr>
+<tr><td>KYO ELECTRIC</td><td>Alvaro Gonzalez</td><td>Omar Afchoun</td><td>2023-02-09</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>SIGNOS</td><td>Leonardo Vera</td><td>Omar Afchoun</td><td>2023-02-20</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>Sabadell</td><td>Alfonso Moreno</td><td>Omar Afchoun</td><td>2023-02-22</td><td>uDO 518138</td><td>Presencial</td></tr>
+<tr><td>Coffee is Incapto</td><td>Omar Afchoun</td><td>Alvaro Gonzalez</td><td>2023-02-23</td><td>uDO 522111</td><td>Presencial</td></tr>
+<tr><td>ACCRAN SECURITY S.L.</td><td>Alvaro Gonzalez</td><td>Alfonso Moreno</td><td>2023-03-07</td><td>uDO 514600</td><td>Presencial</td></tr>
+<tr><td>TELECOR S.A.</td><td>Leonardo Vera</td><td>Leonardo Vera</td><td>2023-03-08</td><td>uDO 518988</td><td>Presencial</td></tr>
+<tr><td>CITISEND</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-03-08</td><td>uDO 523673</td><td>Presencial</td></tr>
+<tr><td>Segurma S.A.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-03-09</td><td>uDO 510197</td><td>Presencial</td></tr>
+<tr><td>KEYTER INTARCON OPERATIONS S.L</td><td>Omar Afchoun</td><td>Leonardo Vera</td><td>2023-03-09</td><td>uDO 519302</td><td>Presencial</td></tr>
+<tr><td>PLATAFORMA DOBLE CLIC S.L. (Alarmas)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-03-09</td><td>uDO 523597</td><td>Presencial</td></tr>
+<tr><td>ABRENTIA TECHNOLOGIES SL</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-03-10</td><td>uDO 522583</td><td>Presencial</td></tr>
+<tr><td>LAMBRA GESTION ENERGETICA 2020 S.L.</td><td>Leonardo Vera</td><td>Leonardo Vera</td><td>2023-03-13</td><td>uDO 522604</td><td>Presencial</td></tr>
+<tr><td>AYUNTAMIENTO DE CASPE</td><td>Alfonso Moreno</td><td>Alvaro Gonzalez</td><td>2023-03-14</td><td>uDO 523032</td><td>Presencial</td></tr>
+<tr><td>CLIMATIZACION SAUFER S.L.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-03-15</td><td>uDO 523009</td><td>Presencial</td></tr>
+<tr><td>Alarmas Extintores Y Materiales S.A.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-03-16</td><td>uDO 522982</td><td>Presencial</td></tr>
+<tr><td>CANTERAS LA PONDEROSA S.A.</td><td>Christopher Conde</td><td>Christopher Conde</td><td>2023-03-17</td><td>uDO 522606</td><td>Presencial</td></tr>
+<tr><td>CORREDOIRA CARAUDIO</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-03-27</td><td>uDO 527403</td><td>Presencial</td></tr>
+<tr><td>AMPER (solo facturación)</td><td>Carlos Gonzalez</td><td>Omar Afchoun</td><td>2023-03-31</td><td>uDO 528151</td><td>Presencial</td></tr>
+<tr><td>LIFEWATCH ERIC</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-04-10</td><td>uDO 529347</td><td>Presencial</td></tr>
+<tr><td>Engie Servicios Energéticos SA</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-04-11</td><td>uDO 531629</td><td>Presencial</td></tr>
+<tr><td>MICROELECTRONICA MASER</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-04-12</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>GOBIERNO VASCO</td><td>Christopher Conde</td><td>Christopher Conde</td><td>2023-04-13</td><td>uDO 535731</td><td>Presencial</td></tr>
+<tr><td>SIDMAR ESTUDIOS Y SERVICIOS OCEANOGRAFICOS S.L.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-04-18</td><td>uDO 534931</td><td>Presencial</td></tr>
+<tr><td>BIMBO DONUTS IBERIA S.A.U.</td><td>Omar Afchoun</td><td>Alfonso Moreno</td><td>2023-04-26</td><td>uDO 539587</td><td>Presencial</td></tr>
+<tr><td>LITOCLEAN S.L.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-04-27</td><td>uDO 531089</td><td>Presencial</td></tr>
+<tr><td>GS España</td><td>Christopher Conde</td><td>Alvaro Gonzalez</td><td>2023-04-28</td><td>uDO 531218</td><td>Presencial</td></tr>
+<tr><td>FUEIB (IP Estatico)</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-05-03</td><td>uDO 529461</td><td>Presencial</td></tr>
+<tr><td>Telma Seguridad (Alarmas)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-05-04</td><td>uDO 531112</td><td>Presencial</td></tr>
+<tr><td>KIMBERLY-CLARK S.L</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-05-05</td><td>uDO 536015</td><td>Presencial</td></tr>
+<tr><td>INOXPA</td><td>Christopher Conde</td><td>Christopher Conde</td><td>2023-05-10</td><td>uDO 538821</td><td>Presencial</td></tr>
+<tr><td>Viesgo (plantillas conectividades)</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-05-16</td><td>uDO 531582</td><td>Presencial</td></tr>
+<tr><td>ENGEL SOLARES RENOVABLES</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-05-18</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>TRANSPORTES CHUS S.A</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-05-23</td><td>uDO 532690</td><td>Presencial</td></tr>
+<tr><td>LIFEWATCH ERIC</td><td>Christopher Conde</td><td>Christopher Conde</td><td>2023-06-02</td><td>uDO 544668</td><td>Presencial</td></tr>
+<tr><td>MALLA S.A.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-06-05</td><td>uDO 541438</td><td>Presencial</td></tr>
+<tr><td>APM TERMINALS ALGECIRAS S.A. (inglés)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-06-06</td><td>uDO 538133</td><td>Presencial</td></tr>
+<tr><td>PROSOLIA ESPAÑA SLU</td><td>Alvaro Gonzalez</td><td>Christopher Conde</td><td>2023-06-15</td><td>uDO 544773</td><td>Presencial</td></tr>
+<tr><td>CHECK VIDEO AND SECURITY S.L. (Alarmas y umbrales)</td><td>Christopher Conde</td><td>Christopher Conde</td><td>2023-06-15</td><td>uDO 546792</td><td>Presencial</td></tr>
+<tr><td>NAVANTIA</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-06-16</td><td>uDO 543832</td><td>Presencial</td></tr>
+<tr><td>MADRILEÑA GAS (Conectividades)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-06-19</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>PUERTO SOTOGRANDE</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-06-20</td><td>uDO 549005</td><td>Presencial</td></tr>
+<tr><td>LIFEWATCH ERIC</td><td>Christopher Conde</td><td>Christopher Conde</td><td>2023-06-23</td><td>uDO 544668</td><td>Presencial</td></tr>
+<tr><td>ACTIU BERBEGAL Y FORMAS S.A. (Alarmas y umbrales)</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-06-26</td><td>uDO 545209</td><td>Presencial</td></tr>
+<tr><td>COMUNIDAD REGANTES (Conectividades)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-07-05</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>CORPORACION EMPRESARIAL VECTALIA S.A.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-07-13</td><td>uDO 546655</td><td>Presencial</td></tr>
+<tr><td>JPVMATIC 2005 SL UNIPERSONAL</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-07-21</td><td>uDO 551338</td><td>Presencial</td></tr>
+<tr><td>INOLOGY, S.A.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-07-26</td><td>uDO 551696</td><td>Presencial</td></tr>
+<tr><td>SAETA YIELD S.A.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-08-02</td><td>uDO 553986</td><td>Presencial</td></tr>
+<tr><td>SKLUM HOME AND DECO S.L.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-08-03</td><td>uDO 553205</td><td>Presencial</td></tr>
+<tr><td>FROST-TROL</td><td>Christopher Conde</td><td>Christopher Conde</td><td>2023-08-03</td><td>uDO 554313</td><td>Presencial</td></tr>
+<tr><td>ENERGIA DE GALICIA S.A. ENGASA</td><td>Christopher Conde</td><td>Christopher Conde</td><td>2023-08-04</td><td>uDO 554270</td><td>Presencial</td></tr>
+<tr><td>SKLUM HOME AND DECO S.L. (Conectividad)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-08-11</td><td>uDO 556189</td><td>Presencial</td></tr>
+<tr><td>SAETA YIELD S.A. (Conectivdad)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-08-21</td><td>uDO 557162</td><td>Presencial</td></tr>
+<tr><td>Equipo IPP (provisionar nuevo Commplan en Jasper)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-08-29</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>INDULLEIDA S.A.</td><td>Christopher Conde</td><td>Christopher Conde</td><td>2023-09-04</td><td>uDO 560771</td><td>Presencial</td></tr>
+<tr><td>Recursos de la Biomasa S.L.U.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-09-06</td><td>uDO 560723</td><td>Presencial</td></tr>
+<tr><td>Formación a comerciales TME</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-09-14</td><td>Sin ticket</td><td>Presencial</td></tr>
+<tr><td>TRANVIA DE PARLA S.A. (Conectividad)</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-09-20</td><td>uDO 563184</td><td>Presencial</td></tr>
+<tr><td>TRANVIA DE PARLA S.A. (Conectividad)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-09-20</td><td>uDO 563184</td><td>Presencial</td></tr>
+<tr><td>Recursos de la Biomasa S.L.U. (2a parte)</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-10-06</td><td>uDO 565997</td><td>Presencial</td></tr>
+<tr><td>HIDRO LIFT EUROPA S.A.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-10-09</td><td>uDO 567845</td><td>Presencial</td></tr>
+<tr><td>MAQUINARIA E HIDRAULICA JOVISA (Consumos y estados de SIMs)</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-10-11</td><td>uDO 567582</td><td>Presencial</td></tr>
+<tr><td>Fontventa S.L.</td><td>Christopher Conde</td><td>Christopher Conde</td><td>2023-10-17</td><td>uDO 569023</td><td>Presencial</td></tr>
+<tr><td>EMPRESA MIXTA DE AGUAS DE SANTA CRUZ DE TENERIFE S.A.</td><td>Christopher Conde</td><td>Christopher Conde</td><td>2023-10-19</td><td>uDO 568428</td><td>Presencial</td></tr>
+<tr><td>HANWHA ENERGY RETAIL SPAIN S.L.U. (Consultas y dudas)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-10-26</td><td>uDO 570302</td><td>Presencial</td></tr>
+<tr><td>CITISEND-URD S.L. (Alarmas)</td><td>Omar Afchoun</td><td>Alfonso Moreno</td><td>2023-10-31</td><td>uDO 571426</td><td>Presencial</td></tr>
+<tr><td>RASTREOMOBILE SL</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2023-11-06</td><td>uDO 571431</td><td>Presencial</td></tr>
+<tr><td>FUNDACION TECNALIA RESEARCH &amp; INNOVATION</td><td>Christopher Conde</td><td>Christopher Conde</td><td>2023-11-07</td><td>uDO 570454</td><td>Presencial</td></tr>
+<tr><td>Merck Life Science</td><td>Christopher Conde</td><td>Christopher Conde</td><td>2023-11-13</td><td>uDO 572671</td><td>Presencial</td></tr>
+<tr><td>SIMETRIA FIDENTIA S.L.U.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-11-13</td><td>uDO 572713</td><td>Presencial</td></tr>
+<tr><td>MAHOU S.A. (Asignacion de IP fijas en Kite)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-11-14</td><td>uDO 573147</td><td>Presencial</td></tr>
+<tr><td>CEDINSA CONCESSIONARIA S.A.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-11-15</td><td>uDO 573520</td><td>Presencial</td></tr>
+<tr><td>SERVICIOS SOCIO SANITARIOS GENERALES S.L.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2023-11-17</td><td>uDO 574195</td><td>Presencial</td></tr>
+<tr><td>VULPIS BOX SL</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-11-22</td><td>uDO 574622</td><td>Presencial</td></tr>
+<tr><td>Nueva Generacion De Programas SL</td><td>Christopher Conde</td><td>Christopher Conde</td><td>2023-11-23</td><td>uDO 575146</td><td>Presencial</td></tr>
+<tr><td>ENAGAS S.A.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2023-11-28</td><td>uDO 576926</td><td>Presencial</td></tr>
+<tr><td>DUPLEX ASCENSORES (Conectividad)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-11-28</td><td>uDO 577343</td><td>Presencial</td></tr>
+<tr><td>LIDL SUPERMERCADOS S.A.U.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2023-11-29</td><td>uDO 576913</td><td>Presencial</td></tr>
+<tr><td>MYCELIUM</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-12-01</td><td>uDO 577014</td><td>Presencial</td></tr>
+<tr><td>AMERCIAN TECH SPAIN S.L.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2023-12-01</td><td>uDO 576975</td><td>Presencial</td></tr>
+<tr><td>NUUK MOBILITY SOLUTIONS S.L.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-12-01</td><td>uDO 578174</td><td>Presencial</td></tr>
+<tr><td>NOVALITY</td><td>Christopher Conde</td><td>Christopher Conde</td><td>2023-12-14</td><td>uDO 580682</td><td>Presencial</td></tr>
+<tr><td>PIHER SENSORS &amp; CONTROLS S.A.</td><td>Ionut Madalin</td><td>Christopher Conde</td><td>2023-12-15</td><td>uDO 580645</td><td>Presencial</td></tr>
+<tr><td>SERVICIOS ARGA VALDIZARBE S.L.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2023-12-18</td><td>uDO 580643</td><td>Presencial</td></tr>
+<tr><td>REPSOL COMERCIALIZADORA DE ELECTRICIDAD Y GAS S.L.U</td><td>Ionut Madalin</td><td>Alfonso Moreno</td><td>2023-12-19</td><td>uDO 579415</td><td>Presencial</td></tr>
+<tr><td>Avoris División Central S.L.U</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-12-20</td><td>uDO 580718</td><td>Presencial</td></tr>
+<tr><td>SUBUS GRUPO DE TRANSPORTE S.L (Alarmas)</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2023-12-27</td><td>uDO 522648</td><td>Presencial</td></tr>
+<tr><td>AIGUES DE CASTELLBISBAL S.L.</td><td>Christopher Conde</td><td>Alvaro Gonzalez</td><td>2023-12-27</td><td>uDO 581985</td><td>Presencial</td></tr>
+<tr><td>SISTEMAS DE CONTROL ENERGÉTICO GESTANER S.L.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-01-03</td><td>uDO 581973</td><td>Presencial</td></tr>
+<tr><td>Avancem Amb Voste S.L.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-01-05</td><td>uDO 583445</td><td>Presencial</td></tr>
+<tr><td>SAT N-9895 AGRICOLA PERICHAN</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-01-11</td><td>uDO 582819</td><td>Presencial</td></tr>
+<tr><td>ABN PIPE Systems SLU</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-01-15</td><td>uDO 585867</td><td>Presencial</td></tr>
+<tr><td>IBIZATOURS &amp; ISLANDBUS S.L.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-01-18</td><td>uDO 587249</td><td>Presencial</td></tr>
+<tr><td>TECNOLOGIAS VIALES APLICADAS TEVA S.L.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-01-18</td><td>uDO 586970</td><td>Presencial</td></tr>
+<tr><td>PROVEIMENTS D&#x27;AIGUA S.A. (solo Alarmas)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-01-19</td><td>uDO 585584</td><td>Presencial</td></tr>
+<tr><td>FCC AQUALIA S.A. (Conectividad IoT)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-01-19</td><td>uDO 586264</td><td>Presencial</td></tr>
+<tr><td>ELECTRÓNICA RODYCH S.A.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-01-23</td><td>uDO 588214</td><td>Presencial</td></tr>
+<tr><td>MOPYC S.A.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-01-24</td><td>uDO 588178</td><td>Presencial</td></tr>
+<tr><td>ULLASTRES S.A.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-01-25</td><td>uDO 588595</td><td>Presencial</td></tr>
+<tr><td>BUSVI</td><td>Omar Afchoun</td><td>Alvaro Gonzalez</td><td>2024-01-30</td><td>uDO 589635</td><td>Presencial</td></tr>
+<tr><td>A EMBARBA S.A.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-01-30</td><td>uDO 589636</td><td>Presencial</td></tr>
+<tr><td>SEGURMA</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-01-31</td><td>uDO 589970</td><td>Presencial</td></tr>
+<tr><td>PRIMAFLOR S.A.T. 9855</td><td>Alfonso Moreno</td><td>Omar Afchoun</td><td>2024-02-02</td><td>uDO 576711</td><td>Presencial</td></tr>
+<tr><td>AXENCIA PARA A MODERNIZACION TECNOLOXICA DE GALICIA AMTEGA</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-02-05</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>GASIB SOCIEDAD IBERICA DE GAS LICUADO S.L.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-02-05</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>AYUNTAMIENTO DE BENIDORM</td><td>Alvaro Gonzalez</td><td>Omar Afchoun</td><td>2024-02-05</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>QUANTUM ENERGIA VERDE</td><td>Ionut Madalin</td><td>Ionut Madalin/Omar</td><td>2024-02-05</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>RELOGABLE</td><td>Alfonso Moreno</td><td>Alfonso Moreno/Alvaro</td><td>2024-02-05</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>INFOMED SOFTWARE S.L.</td><td>Omar Afchoun</td><td>Omar Afchoun/Alfonso</td><td>2024-02-08</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>AYUNTAMIENTO DE BENIDORM</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-02-12</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>JOSE RUIZ GRANADOS</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-02-13</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>AYUNTAMIENTO DE HUESCA</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-02-15</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>DIPUTACION PROVINCIAL DE CACERES</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-02-19</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>IERTEC SMART TECHNOLOGIES SL</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-02-21</td><td>uDO 594316</td><td>Presencial</td></tr>
+<tr><td>BOMBEATEC</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-02-21</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>MAQUINARIA E HIDRAULICA JOVISA S.L.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-02-21</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>BUSVI - Creación sociedades en Organización</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-02-22</td><td>uDO 595269</td><td>Presencial</td></tr>
+<tr><td>MAKRO DISTRIBUCION MAYORISTA S.A.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-02-23</td><td>uDO 596682</td><td>Presencial</td></tr>
+<tr><td>TTES URBANOS Y SERVICIOS GENERALES SAL</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-02-26</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>014 IN S.L</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-02-27</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>LABORATORIOS FARMACEUTICOS ROVI S.A.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-02-27</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>CIRSA TECNOLOGIAS DE LA INFORMACION S.L.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-02-28</td><td></td><td>Presencial</td></tr>
+<tr><td>KENSO SOLUTIONS S.L.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-02-28</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>CAPITAL ENERGY (Conectividad APN)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-02-29</td><td>uDO 597979</td><td>Presencial</td></tr>
+<tr><td>VERBUND GREEN POWER IBERIA S.L.U.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-02-29</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>AYUNTAMIENTO DE BENIDORM</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-03-01</td><td>uDO 597396</td><td>Presencial</td></tr>
+<tr><td>AIGÜES DE BANYOLES S.A.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-03-06</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>RECREATIVOS MATENCIO S.A. (conectividad)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-03-14</td><td>uDO 600880</td><td>Presencial</td></tr>
+<tr><td>UFD DISTRIBUCION ELECTRICIDAD SA</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-03-14</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>EURONET 360 FINANCE LIMITED SUCURSAL EN ESPAÑA (conectividad)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-03-18</td><td>uDO 595257</td><td>Presencial</td></tr>
+<tr><td>ABERTIS AUTOPISTAS  ESPAÑA S.A.U</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-03-18</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>NOVA IBERIA RETURN SL</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-04-01</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>NEDGIA - NATURGY - Conectividad</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-04-01</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>AYUNTAMIENTO DE POZOBLANCO</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-04-01</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>PANOIMAGEN</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-04-02</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>COM. GENERAL DE REGANTES DEL CANAL DE ARAGON Y CATALUÑA</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-04-04</td><td>uDO 602343</td><td>Presencial</td></tr>
+<tr><td>GN CATALUNYA SDG, S.A. (conectividad)</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-04-05</td><td>uDO 604354</td><td>Presencial</td></tr>
+<tr><td>Banco de Sabadell S.A.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-04-08</td><td>uDO 603516</td><td>Presencial</td></tr>
+<tr><td>COMUNIDAD AUTÓNOMA DE LA RIOJA</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-04-09</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>IDCQ Hospitales y Sanidad SLU</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-04-09</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>GN CATALUNYA SDG, S.A. (conectividad)</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-04-09</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>AYUNTAMIENTO DE BENIDORM P0303100B</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-04-11</td><td>uDO 604764</td><td>Presencial</td></tr>
+<tr><td>UFD DISTRIBUCION ELECTRICIDAD SA</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-04-12</td><td>uDO 604330</td><td>Presencial</td></tr>
+<tr><td>NESPRESSO</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-04-15</td><td>uDO 605447</td><td>Presencial</td></tr>
+<tr><td>IDCQ Hospitales y Sanidad SLU (conectividad)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-04-16</td><td>uDO 606426</td><td>Presencial</td></tr>
+<tr><td>Recreativos Matencio (conectividades)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-04-16</td><td>uDO 600880</td><td>Presencial</td></tr>
+<tr><td>COJALI S.L. (conectividad)</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-04-17</td><td>uDO 606274</td><td>Presencial</td></tr>
+<tr><td>AJUNTAMENT DE SANT CUGAT DEL VALLES</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-04-18</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>SOLIDEO ECO SYSTEMS SL</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-04-22</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>ALSTOM TRANSPORTE S.A.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-04-22</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>Vicent Maño Fenollar (Alarmas)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-04-22</td><td>uDO 607743</td><td>Presencial</td></tr>
+<tr><td>ENGEL SOLAR RENOVABLES SL</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-04-23</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>IDCQ Hospitales y Sanidad SLU</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-04-24</td><td>uDO 608414</td><td>Presencial</td></tr>
+<tr><td>UTE AUSCULTACION LINEA 11</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-04-25</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>GS ESPAÑA HOLDINGS S.L.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-04-29</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>Asuntos Y Gestiones S.L</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-04-29</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>GAVANENCA DE TERRENOS E INMUEBLES S.A.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-05-06</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>1ª OTIS MOBILITY S.A.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-05-09</td><td>uDO 609589</td><td>Presencial</td></tr>
+<tr><td>AYUNTAMIENTO DE POZOBLANCO</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-05-09</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>SOCIEDAD ESPAÑOLA DE CONSTRUCCIONES ELECTRICAS S.A.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-05-09</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>AYUNTAMIENTO DE TORREMOLINOS</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-05-15</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>2ª OTIS MOBILITY S.A.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-05-16</td><td>uDO 609589</td><td>Presencial</td></tr>
+<tr><td>TRANSPORTES BLINDADOS S.A.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-05-16</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>GLOBAL MEDIA &amp; ENTERTAINMENT S.A.U. (Conectividad)</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-05-20</td><td>uDO 612784</td><td>Presencial</td></tr>
+<tr><td>SPHERAG TECK IOT</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-05-22</td><td>uDO 612747</td><td>Presencial</td></tr>
+<tr><td>3ª OTIS MOBILITY S.A.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-05-23</td><td>uDO 607743</td><td>Presencial</td></tr>
+<tr><td>GRUPO KAPITAL</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-05-27</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>CITY OF SOUND SLU</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-05-27</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>INSTITUTO DE INNOVACION Y DESARROLLO AGRICOLA S.L.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-05-29</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>COSMOS ENGINEERING SL</td><td>Claudia Liliana</td><td>Claudia Liliana</td><td>2024-06-04</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>GN CATALUNYA SDG, S.A.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-06-07</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>UNIVERSIDAD DE SEVILLA</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-06-10</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>ATAM PARA EL APOYO FAMILIAR</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-06-10</td><td>uDO 616882</td><td>Presencial</td></tr>
+<tr><td>VIESGO</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-06-11</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>DIPUTACION PROVINCIAL DE CACERES</td><td>Antonia Cano</td><td>Antonia Cano</td><td>2024-06-17</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>AYUNTAMIENTO DE TORRENT</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-06-20</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>ALARMAS EXTINTORES Y MATERIALES</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-06-27</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>EMPRESA MANCOMUNADA DEL ALIJARAFE S.A.</td><td>Antonia Cano</td><td>Antonia Cano</td><td>2024-07-01</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>LIDL</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-07-01</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>GRO IN DESARROLLOS</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-07-01</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>GRUPO R SEGURIDAD GLOBAL</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-07-02</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>GN CATALUNYA SDG, S.A.</td><td>Alvaro Gonzalez</td><td>Omar Afchoun</td><td>2024-07-03</td><td>uDO 617075</td><td>Presencial</td></tr>
+<tr><td>LIFEWATCH ERIC (Alarmas, Informes, Facturación)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-07-03</td><td></td><td>Presencial</td></tr>
+<tr><td>EMASA MALAGA (Conectividad)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-07-04</td><td>uDO 618419</td><td>Presencial</td></tr>
+<tr><td>SPHERAG TECK IOT</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-07-05</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>LIFEWATCH ERIC</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-07-08</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>EXPLOTACION JORDAN S.L.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-07-19</td><td>uDO 625238</td><td>Presencial</td></tr>
+<tr><td>EXPLOTACION JORDAN S.L.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-07-19</td><td>uDO 625238</td><td>Presencial</td></tr>
+<tr><td>CLECE S.A.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-07-23</td><td>uDO 626140</td><td>Presencial</td></tr>
+<tr><td>FUNDACION TECNALIA RESEARCH &amp; INNOVATION (Alarmado)</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2024-08-06</td><td>uDO 625514</td><td>Presencial</td></tr>
+<tr><td>EXOLUM</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-10-09</td><td>uDO 635412</td><td>Presencial</td></tr>
+<tr><td>SEITT SME SA</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-12-13</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>ISEMAREN</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-12-13</td><td></td><td>Presencial</td></tr>
+<tr><td>MAIORTECH</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-12-16</td><td>Sin ticket</td><td>Enviada videoformación</td></tr>
+<tr><td>SEITT (Conectividad IPSec)</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-12-16</td><td>uDO 654304</td><td>Presencial</td></tr>
+<tr><td>TRANSPORTES Y GRUAS AGUADO</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2024-12-20</td><td>uDO 655157</td><td>Presencial</td></tr>
+<tr><td>ANTONIO MATACHANA S.A.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2024-12-23</td><td>uDO 655717</td><td>Presencial</td></tr>
+<tr><td>BODEGAS TERRAS GAUDA S.A.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2024-12-26</td><td>uDO 655923</td><td>Presencial</td></tr>
+<tr><td>RCM TELECOMUNICACIONES SL</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-01-09</td><td>uDO 655308</td><td>Presencial</td></tr>
+<tr><td>EKOEC TECHNICAL SOCIEDAD LIMITADA</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-01-10</td><td>uDO 657700</td><td>Presencial</td></tr>
+<tr><td>UNICAJA BANCO S.A.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-01-13</td><td>uDO 651854</td><td>Presencial</td></tr>
+<tr><td>TAYLLES</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-01-14</td><td>uDO 657640</td><td>Presencial</td></tr>
+<tr><td>CAPTRAIN ESPAÑA S.A.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-01-17</td><td>uDO 658994</td><td>Presencial</td></tr>
+<tr><td>ADELFAS GENERACION RENOVABLE S.L</td><td>Aitor Panadero</td><td>Aitor Panadero</td><td>2025-01-27</td><td></td><td>Presencial</td></tr>
+<tr><td>Fernando Sarria Agrotechnologies S.L</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-01-29</td><td>uDO 660719</td><td>Presencial</td></tr>
+<tr><td>RENAULT</td><td>Aitor Panadero</td><td>Aitor Panadero</td><td>2025-01-31</td><td>uDO 661773</td><td>Presencial</td></tr>
+<tr><td>WATTSHARING SL</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-01-31</td><td>uDO 660911</td><td>Presencial</td></tr>
+<tr><td>JUNTA MUNICIPAL DE AGUAS</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-02-04</td><td>uDO 661770</td><td>Presencial</td></tr>
+<tr><td>ACCIONA GIJON UTE</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-02-06</td><td>uDO 662113</td><td>Presencial</td></tr>
+<tr><td>GASIB</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-02-12</td><td>uDO 664209</td><td>Presencial</td></tr>
+<tr><td>AUTOCARES DEL PANADÉS S.A.</td><td>Aitor Panadero</td><td>Aitor Panadero</td><td>2025-02-17</td><td>uDO 665068</td><td>Presencial</td></tr>
+<tr><td>COMARCA BARBERÁ</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-02-19</td><td>uDO 665949</td><td>Presencial</td></tr>
+<tr><td>AYUNTAMIENTO DE NAVALCARNERO</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-02-21</td><td>uDO 666707</td><td>Presencial</td></tr>
+<tr><td>CONSEJO INSULAR DE AGUAS DE GRAN CANARIA</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-02-25</td><td>uDO 666959</td><td>Presencial</td></tr>
+<tr><td>URBIDERMIS SL</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-02-25</td><td>uDO 666990</td><td>Presencial</td></tr>
+<tr><td>Global Biosfera Protec S.L (IOTPAT)</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-02-27</td><td>uDO 667290</td><td>Presencial</td></tr>
+<tr><td>FANOX ELECTRONIC S.L.</td><td>Aitor Panadero</td><td>Aitor Panadero</td><td>2025-03-03</td><td>uDO 669049</td><td>Presencial</td></tr>
+<tr><td>L&#x27;Alcudia Electronica Y Sistemas De Seguridad S.L.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-03-14</td><td>uDO 670148</td><td>Presencial</td></tr>
+<tr><td>TELECOR</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-03-14</td><td>uDO 670704</td><td>Presencial</td></tr>
+<tr><td>ADRIAN VAZQUEZ TALLERES S.L</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-03-17</td><td>uDO 667896</td><td>Presencial</td></tr>
+<tr><td>AYUNTAMIENTO DE BADAJOZ</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-03-19</td><td>uDO 671092</td><td>Presencial</td></tr>
+<tr><td>Eco Engineering Solutions (kit -&gt; cliente normal)</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-03-20</td><td>uDO 671654</td><td>Presencial</td></tr>
+<tr><td>SOLANZUR 6 S.L.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-03-31</td><td>uDO 673813</td><td>Presencial</td></tr>
+<tr><td>Residencial Viella SA</td><td>Aitor Panadero</td><td>Aitor Panadero</td><td>2025-04-01</td><td>uDO 673828</td><td>Presencial</td></tr>
+<tr><td>EQTIC</td><td>Aitor Panadero</td><td>Aitor Panadero</td><td>2025-04-04</td><td></td><td>Presencial</td></tr>
+<tr><td>Consorcio de Abastecimiento Aguas Marina Baja</td><td>Aitor Panadero</td><td>Aitor Panadero</td><td>2025-04-08</td><td>uDO 673372</td><td>Presencial</td></tr>
+<tr><td>CONSTRUCCIONES METALICAS COMANSA S.A.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-04-09</td><td>uDO 674782</td><td>Presencial</td></tr>
+<tr><td>ATAM PARA EL APOYO FAMILIAR</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-04-11</td><td>CS0371497</td><td>Presencial</td></tr>
+<tr><td>COMANSA (IoTPAT)</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-04-14</td><td>INC0163294</td><td>Presencial</td></tr>
+<tr><td>Recursos de la Biomasa S.L.U.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-04-21</td><td>INC0163751</td><td>Presencial</td></tr>
+<tr><td>WORLDLINE MS IBERIA S.L (INGENICO IBERIA)</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-04-22</td><td>CS0372176</td><td>Presencial</td></tr>
+<tr><td>GAROTECNIA S.A.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-04-29</td><td>CSTASK0030560</td><td>Presencial</td></tr>
+<tr><td>Ayuntamiento de Mieres</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-05-14</td><td>CSTASK0030727</td><td>Presencial</td></tr>
+<tr><td>TECNICA DE EMBALAJE S.A</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-05-15</td><td>CSTASK0030827</td><td>Presencial</td></tr>
+<tr><td>JEREMIAS ESPANA S.A.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-05-16</td><td>CSTASK0030842</td><td>Presencial</td></tr>
+<tr><td>HIBERUS ADVANCED SOLUTIONS SLU</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-05-19</td><td>CSTASK0030846</td><td>Presencial</td></tr>
+<tr><td>AJUNTAMENT DE CORNELLA</td><td>Aitor Panadero</td><td>Aitor Panadero</td><td>2025-05-26</td><td>CSTASK0030728</td><td>Presencial</td></tr>
+<tr><td>COMUNIDAD DE REGANTES DE LORCA (Alarmas)</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-05-26</td><td>CSTASK0030924</td><td>Presencial</td></tr>
+<tr><td>PREMIER AUTO ACCESSORY SL</td><td>Aitor Panadero</td><td>Aitor Panadero</td><td>2025-05-28</td><td>CSTASK0030905</td><td>Presencial</td></tr>
+<tr><td>HONEI APP</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-06-05</td><td>CSTASK0031131</td><td>Presencial</td></tr>
+<tr><td>Laysan Seguridad S.L.(alarmas)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-06-13</td><td>CS0406004</td><td>Presencial</td></tr>
+<tr><td>AJUNTAMENT DE LLEIDA</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-06-18</td><td>CSTASK0031293</td><td>Presencial</td></tr>
+<tr><td>MOBY TEC COMMERCE, S.L. (APIs)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-06-23</td><td>CSTASK0031435</td><td>Presencial</td></tr>
+<tr><td>EIFFAGE</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-06-23</td><td>CSTASK0031342</td><td>Presencial</td></tr>
+<tr><td>TOT COMUNICACIO</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-07-01</td><td>CSTASK0031603</td><td>Presencial</td></tr>
+<tr><td>KANTAR MEDIA S.A.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-07-02</td><td>CSTASK0031615</td><td>Presencial</td></tr>
+<tr><td>VILLABLANCA SOLAR</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-07-09</td><td></td><td>Presencial</td></tr>
+<tr><td>BOMBAS GRUNDFOS ESPAÑA S.A.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-07-10</td><td>CS0420643</td><td>Presencial</td></tr>
+<tr><td>XTRA Auto Beltrán</td><td>Aitor Panadero</td><td>Aitor Panadero</td><td>2025-07-17</td><td>CS0422195</td><td>Presencial</td></tr>
+<tr><td>AYUNTAMIENTO DE BENALMADENA</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-07-21</td><td>CS0426198</td><td>Presencial</td></tr>
+<tr><td>QUAVITAE SERVICIOS ASISTENCIALES S.A.U</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-07-22</td><td>CS0423991</td><td>Presencial</td></tr>
+<tr><td>DOMO POLYMER SOLUTIONS SPAIN S.L.U.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-07-23</td><td>CS0427361</td><td>Presencial</td></tr>
+<tr><td>ETULOS SOLUTE SL</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-07-29</td><td>CS0427622</td><td>Presencial</td></tr>
+<tr><td>CELLNEX TELECOM ESPAÑA S.L.U</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-07-29</td><td>CS0424528</td><td>Presencial</td></tr>
+<tr><td>TELLINK</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-07-30</td><td>CS0427512</td><td>Presencial</td></tr>
+<tr><td>CARTOBOL</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-08-01</td><td>CS0430727</td><td>Presencial</td></tr>
+<tr><td>TK ELEVADORES ESPAÑA S.L.U</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-08-05</td><td>CS0427784</td><td>Presencial</td></tr>
+<tr><td>HONEI APP S.L.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-09-04</td><td>CS0439988 - videos</td><td>Presencial</td></tr>
+<tr><td>TECNICAS COMPETITIVAS S.A.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-09-08</td><td>CS0438806</td><td>Presencial</td></tr>
+<tr><td>XPO TRANSPORT SOLUTIONS SPAIN, S.L.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-09-10</td><td>CS0441924</td><td>Presencial</td></tr>
+<tr><td>IRONLOCK SISTEMAS</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-09-15</td><td>CS0443238</td><td>Presencial</td></tr>
+<tr><td>Cetil Dispensing Technology S.L.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-09-18</td><td>CS0443472</td><td>Presencial</td></tr>
+<tr><td>Autovia de Aragon Sociedad Concesionaria S.A.</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-09-19</td><td>CS0444247</td><td>Presencial</td></tr>
+<tr><td>TERMOGRAFIA APLICADA SL</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-09-29</td><td>CS0447054</td><td>Presencial</td></tr>
+<tr><td>LIMCAMAR</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-10-01</td><td>CS0447964</td><td>Presencial</td></tr>
+<tr><td>RDM PAPRINSA S.A.U.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-10-02</td><td>CS0447279</td><td>Presencial</td></tr>
+<tr><td>AYUNTAMIENTO DE HUESCA (IP estatico)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-10-03</td><td>CS0447180</td><td>Presencial</td></tr>
+<tr><td>BATEA (IoTPAT)</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-10-16</td><td>CS0452861</td><td>Presencial</td></tr>
+<tr><td>AYTO. DE TERUEL III</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-10-16</td><td>CS0454369</td><td>Presencial</td></tr>
+<tr><td>DIPUTACION PROVINCIAL DE SEGOVIA</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-10-17</td><td>CS0453483</td><td>Presencial</td></tr>
+<tr><td>PROSEGUR SOLUCIONES INTEGRALES DE SEGURIDAD ESPAÑA S.L.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-10-20</td><td>CS0455860</td><td>Presencial</td></tr>
+<tr><td>JUNTA DE ANDALUCIA</td><td>Alfonso Moreno</td><td>Alfonso Moreno</td><td>2025-10-20</td><td>CS0454238</td><td>Presencial</td></tr>
+<tr><td>VOIP GALICIA SLU</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-10-23</td><td>CS0456499</td><td>Presencial</td></tr>
+<tr><td>GRUPO PEREZ</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-10-24</td><td>CS0456524</td><td>Presencial</td></tr>
+<tr><td>CORREDOIRA CAR-AUDIO S.L.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-10-27</td><td>CS0457015</td><td>Presencial</td></tr>
+<tr><td>SMARTGROUP SOLUCIONES</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-10-28</td><td>CS0456526</td><td>Presencial</td></tr>
+<tr><td>KINTECH INSTRUMENTS SLU (Activacion/desactivacion tarjetas)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-10-29</td><td>CS0457971</td><td>Presencial</td></tr>
+<tr><td>EXCAVACIONES FERMIN OSES SL</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-10-30</td><td>CS0457703</td><td>Presencial</td></tr>
+<tr><td>SOLARIA</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-11-06</td><td>CS0460600</td><td>Presencial</td></tr>
+<tr><td>AIRA SOC. COOP. GALEGA</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-11-07</td><td>CS0461079</td><td>Presencial</td></tr>
+<tr><td>LIFEWATCH ERIC (IoTPAT)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-11-11</td><td>CS0460399</td><td>Presencial</td></tr>
+<tr><td>ENERGY BY COGEN SL</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-11-11</td><td>CS0461212</td><td>Presencial</td></tr>
+<tr><td>ELEVACION Y TECNOLOGIA EXCLUSIVA</td><td>Ionut Madalin</td><td>Alvaro Gonzalez</td><td>2025-11-12</td><td>CS0457204</td><td>Presencial</td></tr>
+<tr><td>FUNDACION CTL</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-11-14</td><td>CS0463067</td><td>Presencial</td></tr>
+<tr><td>THERPASA</td><td>Alvaro Gonzalez</td><td>Ionut Madalin</td><td>2025-11-17</td><td>CS0461491</td><td>Presencial</td></tr>
+<tr><td>Engie Servicios Energéticos SA</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-11-25</td><td>CS0465665</td><td>Presencial</td></tr>
+<tr><td>Alarmas Extintores Y Materiales S.A. (excesos facturación)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-11-21</td><td>CS0466567</td><td>Presencial</td></tr>
+<tr><td>LETMECHARGE, S.L.U </td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-11-28</td><td>CS0467976</td><td>Presencial</td></tr>
+<tr><td>ALQUIBALAT S.L.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2025-12-01</td><td>CS0468750</td><td>Presencial</td></tr>
+<tr><td>FERMAX - Kick off</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-12-03</td><td>CS0467967</td><td>Presencial</td></tr>
+<tr><td>SERMETRA (On boarding)</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2025-12-09</td><td>SCTASK0048091</td><td>Presencial</td></tr>
+<tr><td>AYUNTAMIENTO DE PONFERRADA</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-01-12</td><td>CS0508964</td><td>Presencial</td></tr>
+<tr><td>KINTECH INSTRUMENTS SLU (IMEI Lock)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2025-12-19</td><td>CS0498299</td><td>Presencial</td></tr>
+<tr><td>SOCIEDAD ANONIMA DAMM</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-01-15</td><td>CS0510940</td><td>Presencial</td></tr>
+<tr><td>INSTORE MARKETING SOLUTIONS S.A.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-01-16</td><td>CS0511413</td><td>Presencial</td></tr>
+<tr><td>COMSA INSTALACIONES Y SISTEMAS INDUSTRIALES S.A.U.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-01-08</td><td>CS0502519</td><td>Presencial</td></tr>
+<tr><td>Telecomunicacions i Centraletes Girona, Sl</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-01-20</td><td>CS0513216</td><td>Presencial</td></tr>
+<tr><td>AERTEC SOLUTIONS SL</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>1900-01-20</td><td>CS0513242</td><td>Presencial</td></tr>
+<tr><td>AJUNTAMENT DE SANT CUGAT DEL VALLES</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-01-20</td><td>CS0513451</td><td>Presencial</td></tr>
+<tr><td>CONSEJO INSULAR DE AGUAS DE LA PALMA</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-01-27</td><td>CS0514519</td><td>Presencial</td></tr>
+<tr><td>FUNDACION CTL (Conectividad IPSec)</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-01-21</td><td></td><td></td></tr>
+<tr><td>API MOVILIDAD (Conectividad IPSec)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-01-23</td><td>CS0516063</td><td>Presencial</td></tr>
+<tr><td>RELOGABLE (Conectividad IPSec)</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-01-29</td><td>CS0517776</td><td>Presencial</td></tr>
+<tr><td>API MOVILIDAD S.A.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-02-03</td><td>CS0518910</td><td>Presencial</td></tr>
+<tr><td>PROCESOS DE ESTAMPACION METALICA S.A.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-02-02</td><td>CS0520223</td><td>Presencial</td></tr>
+<tr><td>DASWARE TECHNOLOGIES SLU</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-02-03</td><td>CS0519582</td><td>Presencial</td></tr>
+<tr><td>Fita Envireonmental SL</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-02-05</td><td></td><td></td></tr>
+<tr><td>NETUN SOLUTIONS S.L.(Alarmas)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-02-17</td><td>CS0521514</td><td>Presencial</td></tr>
+<tr><td>ZIV Aplicaciones y Tecnologia S.L.U</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-02-05</td><td>CS0521927</td><td>Presencial</td></tr>
+<tr><td>Global Biosfera Protec (IoTPAT)</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-02-05</td><td>CS0522074</td><td>Presencial</td></tr>
+<tr><td>AUTOBUSES CUADRA S.A.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-02-09</td><td>CS0522308</td><td>Presencial</td></tr>
+<tr><td>LINKEY TECHNOLOGIES S.L.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-02-11</td><td>CS0523226</td><td>Presencial</td></tr>
+<tr><td>SEGUPRO</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-02-16</td><td>CS0524821</td><td>Presencial</td></tr>
+<tr><td>ONCE (Conectividad)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-02-05</td><td>sin caso</td><td>Presencial</td></tr>
+<tr><td>JUNTA DE ANDALUCIA</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-02-18</td><td>CS0525632</td><td>Presencial</td></tr>
+<tr><td>Hidrotec Tecnologia Del Agua S.L. (Conectividad IPSec AWS)</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-02-13</td><td>CS0525712</td><td>Presencial</td></tr>
+<tr><td>WENEA MOBILE ENERGY SL (Alarmas)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-02-16</td><td>CS0526443</td><td>Presencial</td></tr>
+<tr><td>DIRECCIÓN GENERAL DE POLICIA</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-02-24</td><td>CS0529295</td><td>Presencial</td></tr>
+<tr><td>ECOOO REVOLUCION SOLAR SL</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-02-18</td><td>CS0527928</td><td>Presencial</td></tr>
+<tr><td>ECOCIUDAD ZARAGOZA S.A.U.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-02-27</td><td>CS0532222</td><td>Presencial</td></tr>
+<tr><td>PUM TOURS MEDIA SPAIN S.L.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-02-19</td><td>CS0528823</td><td>Presencial</td></tr>
+<tr><td>DAMM (IOTPAT MPLS)</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-02-17</td><td>CS0524999</td><td>Presencial</td></tr>
+<tr><td>PANAMAR BAKERY GROUP S.L.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-03-02</td><td>CS0532743</td><td>Presencial</td></tr>
+<tr><td>Wd Tech Sensors and Systems SL</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-03-11</td><td>CS0535897</td><td>Presencial</td></tr>
+<tr><td>Sociedad Cooperativa del Campo Nuestra Señora del Pilar</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-02-27</td><td>CS0532225</td><td>Presencial</td></tr>
+<tr><td>ECOCIUDAD ZARAGOZA S.A.U. (Conectividad y SRF)</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-02-27</td><td>CS0532222</td><td>Presencial</td></tr>
+<tr><td>LAVARTE CAR S.L.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-03-12</td><td>CS0538041</td><td>Presencial</td></tr>
+<tr><td>FABRICACION DE MATERIAL ELECTRICO S.A.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-04-08</td><td>CS0548142</td><td>Presencial</td></tr>
+<tr><td>AYUNTAMIENTO DE LUCENA</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-03-13</td><td>CS0538564</td><td>Presencial</td></tr>
+<tr><td>SAMOA INDUSTRIAL S.A.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-03-17</td><td>CS0539356</td><td>Presencial</td></tr>
+<tr><td>JUNTA MUNICIPAL DE AGUAS (Alarmas)</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-03-16</td><td>CS0539423</td><td>Presencial</td></tr>
+<tr><td>GORONA DEL VIENTO EL HIERRO S.A.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-03-27</td><td>CS0542868</td><td>Presencial</td></tr>
+<tr><td>Nicolas Correa S.A. Burgos (Kit)</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-03-26</td><td>CS0544752</td><td>Presencial</td></tr>
+<tr><td>CONSEJO INSULAR DE AGUAS DE LA PALMA</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-04-01</td><td>CS0543992</td><td>Presencial</td></tr>
+<tr><td>ABB ROBOTICS IBERIA S.L.U.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-04-09</td><td>CS0547643</td><td>Presencial</td></tr>
+<tr><td>Anexia Tecnologias S.L.</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-04-07</td><td>CS0548013</td><td>Presencial</td></tr>
+<tr><td>AMBUVITAL TRANSPORTE SANITARIO</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-04-07</td><td>CS0548609</td><td>Presencial</td></tr>
+<tr><td>ANUKYS EUROPE SL</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-04-10</td><td>CS0549303</td><td>Presencial</td></tr>
+<tr><td>COMPAÑIA GENERAL DE COMPRAS AG</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-04-14</td><td>CS0551920</td><td>Presencial</td></tr>
+<tr><td>INSTALACIONES NEGRATIN S.L.U.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-04-14</td><td>CS0552772</td><td>Presencial</td></tr>
+<tr><td>DIGITEL TERA S.L.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-04-15</td><td>CS0553638</td><td>Presencial</td></tr>
+<tr><td>VOIP GALICIA SLU</td><td>2025-10-21 00:00:00</td><td>No se presentan a dos convocatorias</td><td></td><td>CS0453147</td><td></td></tr>
+<tr><td>MULTICINE LAS ARENAS</td><td>2025-10-13 00:00:00</td><td>No se presentan a dos convocatorias</td><td></td><td></td><td></td></tr>
+<tr><td>GUPPY MOVILIDAD SOSTENIBLE</td><td>2025-12-30 00:00:00</td><td>No se presentan a dos convocatorias</td><td></td><td>uDO 654468</td><td></td></tr>
+<tr><td>SPEC SA</td><td>13/12 - 18/12</td><td>No se presentan a dos convocatorias</td><td></td><td>uDO 654328</td><td></td></tr>
+<tr><td>ASUNTOS Y GESTIONES S.L. (SALTOKI)</td><td>2023-01-26 00:00:00</td><td>Rechazado por cliente, no se presentan</td><td></td><td></td><td></td></tr>
+<tr><td>PROSOLIA ESPAÑA SLU</td><td>5/6 - 12/06</td><td>No se presentan a dos convocatorias</td><td></td><td>uDO 543485</td><td></td></tr>
+<tr><td>RETAIL TOOLS</td><td>9/6 - 13/6</td><td>No se presentan a dos convocatorias</td><td></td><td>uDO 543480</td><td></td></tr>
+<tr><td>REPSOL S.A.</td><td>14/06 - 21/6 - 20/7</td><td>No se presentan a tres convocatorias</td><td></td><td>uDO 543489</td><td></td></tr>
+<tr><td>SEMESUR S.A. (Alarmas)</td><td>05/07 - 12/7</td><td>No se presentan a dos convocatorias</td><td></td><td>uDO 547981</td><td></td></tr>
+<tr><td>UNIVERSIDAD DE SALAMANCA</td><td>06/07 - 21/7</td><td>No se presentan a dos convocatorias</td><td></td><td>uDO 549000</td><td></td></tr>
+<tr><td>BERRIZ RECYCLING COMPANY S.L.</td><td>2023-08-08 00:00:00</td><td>No se presentan</td><td></td><td>uDO 554084</td><td></td></tr>
+<tr><td>INDULLEIDA S.A.</td><td></td><td>No se presentan</td><td></td><td></td><td></td></tr>
+<tr><td>Martinez Ridao Aviacion S.L.</td><td>2023-10-25 00:00:00</td><td>No se presentan a dos convocatorias</td><td></td><td>uDO 569736</td><td></td></tr>
+<tr><td>AMERICAN TECH SPAIN S.L.</td><td>3/11 8/11</td><td>No se presentan a dos convocatorias</td><td></td><td>uDO 571430</td><td></td></tr>
+<tr><td>SOLAR OUTDOOR MEDIA ESPAÑA SL</td><td>14/11</td><td>No se presentan a dos convocatorias</td><td></td><td>uDO 569709</td><td></td></tr>
+<tr><td>ABN PIPE SYSTEMS S.L.U</td><td>16/11 20/11</td><td>No se presentan a dos convocatorias</td><td></td><td>uDO 573578</td><td></td></tr>
+<tr><td>PRIMAFLOR S.A.T. 9855</td><td>2023-11-27 00:00:00</td><td>No se presentan</td><td></td><td>uDO 576711</td><td></td></tr>
+<tr><td>TRANSPORTES HERNANDEZ PALACIO S.A.</td><td>05/12/2023</td><td>No se presentan a dos convocatorias</td><td></td><td>uDO 577377</td><td></td></tr>
+<tr><td>PRIMAFLOR S.A.T. 9855</td><td>28/12 - 08/01</td><td>No se presentan a dos convocatorias</td><td></td><td>uDO 576711</td><td></td></tr>
+<tr><td>GUPPY MOVILIDAD SOSTENIBLE</td><td>23/12/2024
+30/12/2024</td><td>No se presentan a dos convocatorias</td><td></td><td>uDO 654468</td></tr>
+<tr><td>ISANTO DIGITAL</td><td>2025-01-07 00:00:00</td><td>No se presenta - Convocada 09/01 - 08/01 Baja de cliente</td><td></td><td>uDO 655936</td><td>Presencial</td></tr>
+<tr><td>IVAN GIL LOPEZ</td><td>cancelada</td><td>No tiene fecha prevista para asistir, y le enviamos los videos.</td><td></td><td>uDo 657786</td><td></td></tr>
+<tr><td>MARIA LUISA QUESADA LACHICA</td><td>28-01//30-01</td><td>No se presentan a dos convocatorias - Baja de cliente</td><td></td><td>uDo 660921</td><td></td></tr>
+<tr><td>OPERIBERICA S.A.</td><td>cancelada</td><td>Cancelado por peticion del comercial en el caso</td><td></td><td>uDO 667519</td><td></td></tr>
+<tr><td>ADRIAN VAZQUEZ TALLERES S.L</td><td>2025-03-04 00:00:00</td><td>No se presentan a dos convocatorias 04/03 y 06/03</td><td></td><td>uDO 667896</td><td></td></tr>
+<tr><td>CASINO PRINCIPAL DE GUADALAJARA</td><td>13 de marzo a las 12:00
+19 de marzo a las 12:00</td><td>No se presentan a dos convocatorias </td><td></td><td>UDO 671219</td></tr>
+<tr><td>Consorcio de Abastecimiento Aguas Marina Baja</td><td>28/3/2025 - 03/04/2025</td><td>No se presentan a dos convocatorias </td><td></td><td>uDO 673372</td><td></td></tr>
+<tr><td>AXIA &amp; DYNAMIS GROUP SL</td><td>2025-05-09 00:00:00</td><td>No se presentan a dos convocatorias </td><td></td><td>CSTASK0030735</td><td>Presencial</td></tr>
+<tr><td>Tot Comunicacio Girona Sociedad Limitada</td><td>17/06/2025 - no se presentan
+23/06/2025 - no se presentan</td><td>No se presentan a dos convocatorias </td><td></td><td>Presencial CSTASK0031338 + videos</td></tr>
+<tr><td>AJUNTAMENT DE BATEA</td><td>No se presentan</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>AYUNTAMIENTO DE BENALMADENA</td><td>18/07/2025 - No se presentan</td><td></td><td></td><td></td><td></td></tr>
+<tr><td>HUTESA AGROALIMENTARIA S.A.U</td><td>11/08/2025 - No se presentan
+18/08/2025 - No se presentan</td><td>No se presentan a dos convocatorias </td><td></td><td>Presencial CS0432868 + videos</td></tr>
+<tr><td>AYUNTAMIENTO DE MERIDA</td><td>15/09/2025 - No se presentan
+17/09/2025 - No se presentan</td><td>No se presentan a dos convocatorias </td><td></td><td>Presencia CS0442107 + videos</td></tr>
+<tr><td>ARTFOOD TECH</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>Cancelado</td><td>uDO 523391</td><td>Presencial</td></tr>
+<tr><td>CODERE APUESTAS ESPAÑA SL UNIPERSONAL</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>Cancelado</td><td>uDO 524714</td><td>Presencial</td></tr>
+<tr><td>HYDROLINE NETWORK S.L.</td><td>26/01/2026 - 27/01/2026</td><td>No se presentan a dos convocatorias </td><td></td><td>CS0516276</td><td>Presencial</td></tr>
+<tr><td>Asociación Aplicación Cofrade El Penitente</td><td>20/02/2026 - 24/02/2026</td><td>No se presentan a dos convocatorias </td><td></td><td>CS0528826</td><td>Presencial</td></tr>
+<tr><td>AYUNTAMIENTO DE COLMENAR VIEJO (UTE)</td><td>23/02/2026 - 25/02/2026</td><td>No se presentan a dos convocatorias </td><td></td><td>CS0529726</td><td>Presencial</td></tr>
+<tr><td>GORONA DEL VIENTO EL HIERRO S.A.</td><td>2026-03-24 00:00:00</td><td>No se presentan a la primera convocatoria</td><td></td><td>CS0542868</td><td>Presencial</td></tr>
+<tr><td>GEORADAR</td><td>12/03/2025 - 16/03/2026</td><td>No se presentan a dos convocatorias.</td><td></td><td>CS0538044</td><td>Presencial</td></tr>
+<tr><td>ANUKYS EUROPE SL</td><td>2026-04-07 00:00:00</td><td>No se presentan a la primera convocatoria</td><td></td><td>CS0549303</td><td>Presencial</td></tr>
+<tr><td>Anexia Tecnologias S.L.</td><td>31/03 - 07/04/2026</td><td>No se presentan a dos convocatorias.</td><td></td><td>CS0548013</td><td>Presencial</td></tr>
+<tr><td>FABRICACION DE MATERIAL ELECTRICO S.A.</td><td>Ionut - 08/04, 13/04</td><td>No se presentan a dos convocatorias.</td><td></td><td>CS0548142</td><td>Presencial</td></tr>
+</tbody>
+</table></div>
+</div>
+<div class="panel" id="panel-sin">
+<div class="toolbar">
+<input type="search" id="q2" placeholder="Filtrar...">
+<span class="count" id="count2"></span>
+</div>
+<div class="tbl-wrap"><table id="tbl2">
+<thead><tr><th>Cliente</th><th>Formador</th><th>Cambios</th><th>Cuándo</th><th>TicketID</th><th>Tipo de formación</th></tr></thead>
+<tbody>
+<tr><td>Sertec</td><td>Clara Garcia</td><td></td><td>2022-10-03</td><td>Ha rechazado la fecha propuesta y no contesta a correos</td><td></td></tr>
+<tr><td>HERMANOS LOPEZ URRUTIA</td><td>Rita Hermoso</td><td>Rita Hermoso</td><td>2022-09-14</td><td>no asistieron ( 2 convocatorias)</td><td></td></tr>
+<tr><td>VICENTE MANO FENOLLAR (Alarmas)</td><td></td><td></td><td>2024-01-29</td><td>uDO 586922</td><td></td></tr>
+<tr><td>ISANTO DIGITAL</td><td></td><td></td><td>2025-01-08</td><td>Baja de la organización</td><td></td></tr>
+<tr><td>AYUNTAMIENTO DE CANDAMO</td><td></td><td></td><td>2023-02-02</td><td>No confirman ni se presentan a la formación</td><td></td></tr>
+<tr><td>AYUNTAMIENTO DE CANDAMO</td><td></td><td></td><td>2023-02-21</td><td>Rechazan formación</td><td></td></tr>
+</tbody>
+</table></div>
+</div>
+<div class="panel" id="panel-nueva">
+<form id="form-nueva" novalidate>
+<div class="form-grid">
+<label for="f-cliente">Nombre del cliente *</label>
+<input id="f-cliente" name="cliente" required placeholder="Ej: Nombre Cliente">
+<label for="f-formador">Formador *</label>
+<select id="f-formador" name="formador" required>
+<option value="">— Selecciona formador —</option>
+<option>Ionut Madalin Chivu</option>
+<option>Omar Afchoun Mahdi</option>
+<option>Alvaro Gonzalez Lopez</option>
+<option>Michele Lacerenza</option>
+</select>
+<label for="f-fecha">Fecha convocatoria *</label>
+<input id="f-fecha" name="fecha" type="date" required value="">
+<label for="f-caso">Caso asociado *</label>
+<input id="f-caso" name="caso" required pattern="(CS|SCTASK)[0-9]{7}" placeholder="CS0516276 / SCTASK0048091" maxlength="13" style="text-transform:uppercase">
+<span class="hint">Formato: CS o SCTASK seguido de 7 dígitos (ej. CS0516276 o SCTASK0048091)</span>
+<label for="f-tipo">Tipo de formación *</label>
+<select id="f-tipo" name="tipo" required>
+<option selected>Presencial</option>
+<option>Enviada videoformación</option>
+</select>
+</div>
+<div class="form-actions">
+<button type="submit" class="btn-primary">Añadir formación</button>
+<button type="button" class="btn-primary" id="btn-export" style="background:#27ae60;margin-left:10px">Exportar JSON</button></div>
+<div class="msg" id="form-msg"></div>
+</form>
+</div>
+</div>
+<script>
+const tbody = document.querySelector('#tbl tbody');
+const tbody2 = document.querySelector('#tbl2 tbody');
+const SIN_RE = /cancelad|no se presenta/i;
+[...tbody.querySelectorAll('tr')].forEach(r => {
+  if (SIN_RE.test(r.textContent)) tbody2.appendChild(r);
+});
+function sortTbody(tb) {
+  const rs = [...tb.querySelectorAll('tr')];
+  rs.sort((a, b) => {
+    const da = a.children[3].textContent.trim();
+    const db = b.children[3].textContent.trim();
+    if (!da) return 1; if (!db) return -1;
+    return db.localeCompare(da);
+  });
+  rs.forEach(r => tb.appendChild(r));
+}
+function sortRows() { sortTbody(tbody); sortTbody(tbody2); }
+sortRows();
+
+function wireFilter(qId, countId, tb) {
+  const q = document.getElementById(qId);
+  const count = document.getElementById(countId);
+  function upd() {
+    const term = q.value.toLowerCase();
+    const rs = [...tb.querySelectorAll('tr')];
+    let n = 0;
+    rs.forEach(r => {
+      const show = r.textContent.toLowerCase().includes(term);
+      r.style.display = show ? '' : 'none';
+      if (show) n++;
+    });
+    count.textContent = n + ' / ' + rs.length + ' filas';
+  }
+  q.addEventListener('input', upd);
+  return upd;
+}
+const update = wireFilter('q', 'count', tbody);
+const update2 = wireFilter('q2', 'count2', tbody2);
+update(); update2();
+
+function syncStickyOffsets() {
+  const head = document.querySelector('.sticky-head').offsetHeight;
+  const tb = document.querySelector('.panel.active .toolbar');
+  const tbH = tb ? tb.offsetHeight : 0;
+  document.documentElement.style.setProperty('--head-h', head + 'px');
+  document.documentElement.style.setProperty('--thead-top', (head + tbH) + 'px');
+}
+syncStickyOffsets();
+window.addEventListener('resize', syncStickyOffsets);
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setTimeout(syncStickyOffsets, 0)));
+
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t));
+  const id = 'panel-' + t.dataset.tab;
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
+}));
+
+// ─── CONFIGURACIÓN GOOGLE SHEETS ──────────────────────────────────────────────
+// 1. Sigue las instrucciones en el comentario al final de este fichero para
+//    crear el Apps Script y obtener tu URL.
+// 2. Pega la URL aquí:
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz2MlYyUuTS5YaSrcWUCfr4-zJmlKcdNqj7V4VrSQ6UlqGRzi5fKGVp8-kDzCdaqQwB/exec';
+// ──────────────────────────────────────────────────────────────────────────────
+
+document.getElementById('f-fecha').value = new Date().toISOString().slice(0,10);
+const fTipo = document.getElementById('f-tipo');
+function syncCasoRequired() {
+  const need = fTipo.value !== 'Enviada videoformación';
+  caso.required = need;
+  document.querySelector('label[for=f-caso]').innerHTML = 'Caso asociado' + (need ? ' *' : '');
+}
+fTipo.addEventListener('change', syncCasoRequired);
+const form = document.getElementById('form-nueva');
+const msg = document.getElementById('form-msg');
+const caso = document.getElementById('f-caso');
+caso.addEventListener('input', () => { caso.value = caso.value.toUpperCase(); });
+syncCasoRequired();
+
+function addRowFromData(d) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${d.cliente||''}</td><td>${d.formador||''}</td><td>${d.formador||''}</td><td>${d.fecha||''}</td><td>${d.caso||'Sin ticket'}</td><td>${d.tipo||''}</td>`;
+  (SIN_RE.test(tr.textContent) ? tbody2 : tbody).appendChild(tr);
+}
+
+// Cargar formaciones nuevas desde Google Sheets al abrir la página
+function cargarDesdeSheets() {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbz2MlYyUuTS5YaSrcWUCfr4-zJmlKcdNqj7V4VrSQ6UlqGRzi5fKGVp8-kDzCdaqQwB/exec') return;
+  fetch(APPS_SCRIPT_URL)
+    .then(r => r.json())
+    .then(list => {
+      list.forEach(addRowFromData);
+      sortRows(); update(); update2();
+    })
+    .catch(() => {});
+}
+cargarDesdeSheets();
+
+// Enviar nueva formación a Google Sheets
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  msg.className = 'msg';
+  if (!form.checkValidity()) {
+    msg.textContent = 'Revisa los campos: todos son obligatorios y el caso debe tener formato CS + 7 dígitos.';
+    msg.classList.add('err');
+    form.reportValidity();
+    return;
+  }
+  const data = {
+    cliente: document.getElementById('f-cliente').value.trim(),
+    formador: document.getElementById('f-formador').value.trim(),
+    fecha: document.getElementById('f-fecha').value,
+    caso: caso.value.trim(),
+    tipo: document.getElementById('f-tipo').value
+  };
+
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbz2MlYyUuTS5YaSrcWUCfr4-zJmlKcdNqj7V4VrSQ6UlqGRzi5fKGVp8-kDzCdaqQwB/exec') {
+    // Sin Sheets configurado: solo añade localmente
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${data.cliente}</td><td>${data.formador}</td><td>${data.formador}</td><td>${data.fecha}</td><td>${data.caso||'Sin ticket'}</td><td>${data.tipo}</td>`;
+    (SIN_RE.test(tr.textContent) ? tbody2 : tbody).appendChild(tr);
+    sortRows(); update(); update2();
+    form.reset();
+    document.getElementById('f-fecha').value = new Date().toISOString().slice(0,10);
+    document.getElementById('f-tipo').value = 'Presencial';
+    syncCasoRequired();
+    msg.textContent = '⚠️ Google Sheets no configurado. Formación añadida solo localmente (se perderá al cerrar).';
+    msg.classList.add('err');
+    return;
+  }
+
+  const btn = form.querySelector('button[type=submit]');
+  btn.disabled = true;
+  msg.textContent = 'Guardando...';
+  msg.classList.add('ok');
+
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  })
+  .then(r => r.json())
+  .then(res => {
+    if (res.result === 'ok') {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${data.cliente}</td><td>${data.formador}</td><td>${data.formador}</td><td>${data.fecha}</td><td>${data.caso||'Sin ticket'}</td><td>${data.tipo}</td>`;
+      (SIN_RE.test(tr.textContent) ? tbody2 : tbody).appendChild(tr);
+      sortRows(); update(); update2();
+      form.reset();
+      document.getElementById('f-fecha').value = new Date().toISOString().slice(0,10);
+      document.getElementById('f-tipo').value = 'Presencial';
+      syncCasoRequired();
+      msg.textContent = '✅ Formación guardada en Google Sheets y visible para todos.';
+      msg.classList.add('ok');
+    } else {
+      throw new Error(res.error || 'Error desconocido');
+    }
+  })
+  .catch(err => {
+    msg.textContent = '❌ Error al guardar: ' + err.message;
+    msg.className = 'msg err';
+  })
+  .finally(() => { btn.disabled = false; });
+});
+
+// Botón exportar (mantenido por compatibilidad)
+document.getElementById('btn-export').style.display = 'none';
+</script>
+<!--
+═══════════════════════════════════════════════════════════════════════════════
+ INSTRUCCIONES: CONECTAR CON GOOGLE SHEETS (hazlo una vez, ~15 minutos)
+═══════════════════════════════════════════════════════════════════════════════
+
+PASO 1 — Crear la hoja de Google Sheets
+  1. Ve a https://sheets.google.com y crea una hoja nueva.
+  2. Llámala "Formaciones Kite" (o como quieras).
+  3. En la fila 1 escribe estas cabeceras exactas en las columnas A-E:
+     A1: cliente   B1: formador   C1: fecha   D1: caso   E1: tipo
+
+PASO 2 — Crear el Apps Script (el "servidor" gratuito)
+  1. En la hoja, ve al menú: Extensiones → Apps Script
+  2. Borra todo el código que aparece y pega EXACTAMENTE esto:
+
+─────────────────────────────────────────────────────────────────────────────
+function doGet(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Formaciones');
+  const data = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const rows = data.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = row[i]);
+    return obj;
+  });
+  return ContentService
+    .createTextOutput(JSON.stringify(rows))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Formaciones');
+    const data = JSON.parse(e.postData.contents);
+    sheet.appendRow([
+      data.cliente || '',
+      data.formador || '',
+      data.fecha || '',
+      data.caso || '',
+      data.tipo || ''
+    ]);
+    return ContentService
+      .createTextOutput(JSON.stringify({ result: 'ok' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ result: 'error', error: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+─────────────────────────────────────────────────────────────────────────────
+
+  3. IMPORTANTE: en el código cambia 'Formaciones' por el nombre exacto
+     de tu pestaña en Sheets (por defecto se llama "Hoja 1", así que
+     cambia 'Formaciones' → 'Hoja 1', o renombra la pestaña a 'Formaciones').
+
+PASO 3 — Publicar el script como endpoint web
+  1. Haz clic en "Implementar" → "Nueva implementación"
+  2. Tipo: "Aplicación web"
+  3. Descripción: "Formaciones API"
+  4. Ejecutar como: "Yo (tu cuenta Google)"
+  5. Quién tiene acceso: "Cualquier persona"  ← importante
+  6. Haz clic en "Implementar"
+  7. Copia la URL que aparece (empieza por https://script.google.com/macros/s/...)
+
+PASO 4 — Pegar la URL en este fichero HTML
+  1. Abre este fichero HTML con un editor de texto (Notepad, VS Code, etc.)
+  2. Busca la línea:  const APPS_SCRIPT_URL = 'PEGA_AQUI_LA_URL_DE_TU_APPS_SCRIPT';
+  3. Sustituye PEGA_AQUI_LA_URL_DE_TU_APPS_SCRIPT por la URL del paso anterior
+  4. Guarda el fichero.
+
+PASO 5 — Compartir
+  - Comparte el fichero HTML con tus compañeros (por correo, Teams, SharePoint...).
+  - Todos los que lo abran verán las mismas formaciones y podrán añadir nuevas.
+  - Los datos nuevos aparecen también en la hoja de Sheets en tiempo real.
+
+NOTAS:
+  - Las formaciones que ya están en el HTML (las históricas) siguen ahí siempre.
+  - Las formaciones nuevas añadidas via formulario se guardan en Sheets y se
+    cargan automáticamente al abrir el fichero.
+  - Si quieres pasar las históricas a Sheets también, puedes copiarlas
+    manualmente desde el Excel original.
+═══════════════════════════════════════════════════════════════════════════════
+-->
+</body>
+</html>
