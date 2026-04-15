@@ -440,7 +440,7 @@ tr:hover { background-color: #eef6fc; }
 <span class="count" id="count2"></span>
 </div>
 <div class="tbl-wrap"><table id="tbl2">
-<thead><tr><th>Cliente</th><th>Cuándo</th><th>Comentarios</th><th>Formador</th><th>TicketID</th><th>Tipo de formación</th><th>Convocada</th></tr></thead>
+<thead><tr><th>Cliente</th><th>Cuándo</th><th>Comentarios</th><th>TicketID</th><th>Tipo de formación</th><th>Convocada</th></tr></thead>
 <tbody>
 </tbody>
 </table></div>
@@ -618,8 +618,40 @@ form.addEventListener('submit', e => {
 });
 
 // ─── EDICIÓN PERSISTENTE TAB "SIN PRESENTARSE" ────────────────────────────────
-const SIN_FIELDS = ['cliente','formador','cambios','cuando','ticketid','tipo','convocada'];
-const SIN_EDITABLE_IDX = [1,2,3,4,5]; // formador, cambios, cuando, ticketid, tipo
+const SIN_FIELDS = ['cliente','formador','cambios','ticketid','tipo','convocada'];
+const SIN_EDITABLE_IDX = [1,2,3,4]; // formador(Cuándo), cambios(Comentarios), ticketid, tipo
+
+function formatSinDate(v) {
+  if (!v) return '';
+  const s = String(v).trim();
+  const d = new Date(s);
+  if (!isNaN(d) && /^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    return `${dd}/${mm}/${d.getFullYear()}`;
+  }
+  return s;
+}
+
+function sinSortKey(v) {
+  if (!v) return '';
+  const s = String(v).trim();
+  const d = new Date(s);
+  if (!isNaN(d) && /^\d{4}-\d{2}-\d{2}/.test(s)) return d.toISOString();
+  const m = s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+  if (m) {
+    const y = m[3].length === 2 ? '20'+m[3] : m[3];
+    return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  }
+  return '';
+}
+
+function applySinDefaults(d) {
+  const raw = (d.ticketid == null ? '' : String(d.ticketid)).trim();
+  if (!raw) d.ticketid = 'Sin ticket';
+  if (!raw || /udo/i.test(raw)) d.tipo = 'Presencial';
+  return d;
+}
 
 function uuid() {
   return (crypto && crypto.randomUUID) ? crypto.randomUUID()
@@ -627,9 +659,12 @@ function uuid() {
 }
 
 function buildSinRow(d) {
+  applySinDefaults(d);
   const tr = document.createElement('tr');
   tr.dataset.id = d.id;
-  tr.innerHTML = SIN_FIELDS.map(f => `<td>${(d[f]||'').toString().replace(/</g,'&lt;')}</td>`).join('');
+  tr.dataset.sortKey = sinSortKey(d.formador);
+  const display = { ...d, formador: formatSinDate(d.formador) };
+  tr.innerHTML = SIN_FIELDS.map(f => `<td>${(display[f]||'').toString().replace(/</g,'&lt;')}</td>`).join('');
   SIN_EDITABLE_IDX.forEach(i => {
     const td = tr.children[i];
     td.classList.add('editable');
@@ -673,10 +708,9 @@ function rowToData(tr) {
     cliente:   c[0] ? c[0].textContent.trim() : '',
     formador:  c[1] ? c[1].textContent.trim() : '',
     cambios:   c[2] ? c[2].textContent.trim() : '',
-    cuando:    c[3] ? c[3].textContent.trim() : '',
-    ticketid:  c[4] ? c[4].textContent.trim() : '',
-    tipo:      c[5] ? c[5].textContent.trim() : '',
-    convocada: c[6] ? c[6].textContent.trim() : 'SI'
+    ticketid:  c[3] ? c[3].textContent.trim() : '',
+    tipo:      c[4] ? c[4].textContent.trim() : '',
+    convocada: c[5] ? c[5].textContent.trim() : 'SI'
   };
 }
 
@@ -714,7 +748,13 @@ function initSinPresentarse() {
 function renderSin(list) {
   tbody2.innerHTML = '';
   list.forEach(d => tbody2.appendChild(buildSinRow(d)));
-  sortTbody(tbody2);
+  const rs = [...tbody2.querySelectorAll('tr')];
+  rs.sort((a, b) => {
+    const ka = a.dataset.sortKey || '', kb = b.dataset.sortKey || '';
+    if (!ka) return 1; if (!kb) return -1;
+    return kb.localeCompare(ka);
+  });
+  rs.forEach(r => tbody2.appendChild(r));
   update2();
 }
 
