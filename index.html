@@ -57,7 +57,7 @@ tr:hover { background-color: #eef6fc; }
 <span class="count" id="count"></span>
 </div>
 <div class="tbl-wrap"><table id="tbl">
-<thead><tr><th>Cliente</th><th>Formador</th><th>Cambios</th><th>Cuándo</th><th>TicketID</th><th>Tipo de formación</th><th>Convocada</th></tr></thead>
+<thead><tr><th>Cliente</th><th>Formador</th><th>Cambios</th><th>Cuándo</th><th>TicketID</th><th>Tipo de formación</th><th>Convocada</th><th>Formación realizada</th></tr></thead>
 <tbody>
 <tr><td>Antena Lasser</td><td>Clara Garcia</td><td>Clara Garcia</td><td>2022-08-03</td><td>Sin ticket</td><td>Presencial</td><td>SI</td></tr>
 <tr><td>Sigma Cognition</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2022-08-09</td><td>Sin ticket</td><td>Presencial</td><td>SI</td></tr>
@@ -429,7 +429,7 @@ tr:hover { background-color: #eef6fc; }
 <tr><td>AMBUVITAL TRANSPORTE SANITARIO</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-04-07</td><td>CS0548609</td><td>Presencial</td><td>SI</td></tr>
 <tr><td>ANUKYS EUROPE SL</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-04-10</td><td>CS0549303</td><td>Presencial</td><td>SI</td></tr>
 <tr><td>COMPAÑIA GENERAL DE COMPRAS AG</td><td>Alvaro Gonzalez</td><td>Alvaro Gonzalez</td><td>2026-04-14</td><td>CS0551920</td><td>Presencial</td><td>SI</td></tr>
-<tr><td>INSTALACIONES NEGRATIN S.L.U.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-04-14</td><td>CS0552772</td><td>Presencial</td><td>SI</td></tr>
+<tr><td>INSTALACIONES NEGRATIN S.L.U.</td><td>Ionut Madalin</td><td>Ionut Madalin</td><td>2026-04-15</td><td>CS0552772</td><td>Presencial</td><td>SI</td></tr>
 <tr><td>DIGITEL TERA S.L.</td><td>Omar Afchoun</td><td>Omar Afchoun</td><td>2026-04-15</td><td>CS0553638</td><td>Presencial</td><td>SI</td></tr>
 </tbody>
 </table></div>
@@ -440,7 +440,7 @@ tr:hover { background-color: #eef6fc; }
 <span class="count" id="count2"></span>
 </div>
 <div class="tbl-wrap"><table id="tbl2">
-<thead><tr><th>Cliente</th><th>Cuándo</th><th>Comentarios</th><th>TicketID</th><th>Tipo de formación</th><th>Convocada</th></tr></thead>
+<thead><tr><th>Cliente</th><th>Cuándo</th><th>Comentarios</th><th>TicketID</th><th>Tipo de formación</th></tr></thead>
 <tbody>
 </tbody>
 </table></div>
@@ -483,6 +483,53 @@ const SIN_RE = /cancelad|no se presenta/i;
 [...tbody.querySelectorAll('tr')].forEach(r => {
   if (SIN_RE.test(r.textContent)) tbody2.appendChild(r);
 });
+
+const TODAY_STR = new Date().toISOString().slice(0,10);
+function decorateRealizada(tr) {
+  if (tr.children.length >= 8) return;
+  const fecha = (tr.children[3] && tr.children[3].textContent.trim()) || '';
+  const td = document.createElement('td');
+  if (fecha && fecha > TODAY_STR) {
+    const sel = document.createElement('select');
+    sel.innerHTML = '<option value="SI" selected>SI</option><option value="NO">NO</option>';
+    sel.addEventListener('change', () => {
+      if (sel.value === 'NO') moveRowToSin(tr);
+    });
+    td.appendChild(sel);
+  } else {
+    td.textContent = 'SI';
+  }
+  tr.appendChild(td);
+}
+[...tbody.querySelectorAll('tr')].forEach(decorateRealizada);
+
+function moveRowToSin(tr) {
+  const c = tr.children;
+  const d = {
+    id: uuid(),
+    cliente:  (c[0]?.textContent || '').trim(),
+    formador: (c[3]?.textContent || '').trim(),
+    cambios:  'No se presentan a dos convocatorias',
+    ticketid: (c[4]?.textContent || '').trim(),
+    tipo:     (c[5]?.textContent || '').trim(),
+    convocada: 'SI'
+  };
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'addSin', ...d })
+  }).catch(() => {});
+  tr.remove();
+  tbody2.appendChild(buildSinRow(d));
+  const rs = [...tbody2.querySelectorAll('tr')];
+  rs.sort((a, b) => {
+    const ka = a.dataset.sortKey || '', kb = b.dataset.sortKey || '';
+    if (!ka) return 1; if (!kb) return -1;
+    return kb.localeCompare(ka);
+  });
+  rs.forEach(r => tbody2.appendChild(r));
+  update(); update2();
+}
 function sortTbody(tb) {
   const rs = [...tb.querySelectorAll('tr')];
   rs.sort((a, b) => {
@@ -558,7 +605,9 @@ syncCasoRequired();
 function addRowFromData(d) {
   const tr = document.createElement('tr');
   tr.innerHTML = `<td>${d.cliente||''}</td><td>${d.formador||''}</td><td>${d.formador||''}</td><td>${d.fecha||''}</td><td>${d.caso||'Sin ticket'}</td><td>${d.tipo||''}</td><td>${d.convocada||'SI'}</td>`;
-  (SIN_RE.test(tr.textContent) ? tbody2 : tbody).appendChild(tr);
+  const target = SIN_RE.test(tr.textContent) ? tbody2 : tbody;
+  target.appendChild(tr);
+  if (target === tbody) decorateRealizada(tr);
 }
 
 function resetForm() {
@@ -618,7 +667,7 @@ form.addEventListener('submit', e => {
 });
 
 // ─── EDICIÓN PERSISTENTE TAB "SIN PRESENTARSE" ────────────────────────────────
-const SIN_FIELDS = ['cliente','formador','cambios','ticketid','tipo','convocada'];
+const SIN_FIELDS = ['cliente','formador','cambios','ticketid','tipo'];
 const SIN_EDITABLE_IDX = [1,2,3,4]; // formador(Cuándo), cambios(Comentarios), ticketid, tipo
 
 function formatSinDate(v) {
