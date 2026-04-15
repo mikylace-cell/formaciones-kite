@@ -734,23 +734,33 @@ function rowToData(tr) {
   };
 }
 
+function sinSig(d) {
+  return ((d.cliente||'') + '|' + (d.cuando||'') + '|' + (d.ticketid||'')).toLowerCase().trim();
+}
+
+function postSinSequential(seeds) {
+  return seeds.reduce((p, d) => p.then(() =>
+    fetch(APPS_SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'addSin', ...d })
+    }).then(() => new Promise(r => setTimeout(r, 150)))
+  ), Promise.resolve());
+}
+
 function initSinPresentarse() {
   fetch(APPS_SCRIPT_URL + '?t=sin')
     .then(r => r.json())
     .then(list => {
       if (!Array.isArray(list)) list = [];
-      if (list.length === 0) {
-        // Seed: volcar filas actuales (hardcoded + movidas por SIN_RE) a Sheets
-        const seeds = [...tbody2.querySelectorAll('tr')].map(rowToData);
-        if (seeds.length === 0) return;
-        Promise.all(seeds.map(d => fetch(APPS_SCRIPT_URL, {
-          method: 'POST', mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ action: 'addSin', ...d })
-        }))).then(() => renderSin(seeds));
-      } else {
-        renderSin(list);
-      }
+      const known = new Set(list.map(sinSig));
+      const currentRows = [...tbody2.querySelectorAll('tr')].map(rowToData);
+      const missing = currentRows.filter(d => !known.has(sinSig(d)));
+      if (missing.length === 0) { renderSin(list); return; }
+      postSinSequential(missing)
+        .then(() => fetch(APPS_SCRIPT_URL + '?t=sin').then(r => r.json()))
+        .then(final => renderSin(Array.isArray(final) ? final : list.concat(missing)))
+        .catch(() => renderSin(list.concat(missing)));
     })
     .catch(() => {});
 }
