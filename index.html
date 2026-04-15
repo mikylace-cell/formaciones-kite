@@ -753,14 +753,14 @@ function initSinPresentarse() {
     .then(r => r.json())
     .then(list => {
       if (!Array.isArray(list)) list = [];
-      const known = new Set(list.map(sinSig));
-      const currentRows = [...tbody2.querySelectorAll('tr')].map(rowToData);
-      const missing = currentRows.filter(d => !known.has(sinSig(d)));
-      if (missing.length === 0) { renderSin(list); return; }
-      postSinSequential(missing)
+      if (list.length > 0) { renderSin(list); return; }
+      // Sheet vacío: seed inicial desde las filas HTML actuales
+      const seeds = [...tbody2.querySelectorAll('tr')].map(rowToData);
+      if (seeds.length === 0) return;
+      postSinSequential(seeds)
         .then(() => fetch(APPS_SCRIPT_URL + '?t=sin&_=' + Date.now()).then(r => r.json()))
-        .then(final => renderSin(Array.isArray(final) ? final : list.concat(missing)))
-        .catch(() => renderSin(list.concat(missing)));
+        .then(final => renderSin(Array.isArray(final) ? final : seeds))
+        .catch(() => renderSin(seeds));
     })
     .catch(() => {});
 }
