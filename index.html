@@ -749,7 +749,7 @@ function postSinSequential(seeds) {
 }
 
 function initSinPresentarse() {
-  fetch(APPS_SCRIPT_URL + '?t=sin')
+  fetch(APPS_SCRIPT_URL + '?t=sin&_=' + Date.now())
     .then(r => r.json())
     .then(list => {
       if (!Array.isArray(list)) list = [];
@@ -758,7 +758,7 @@ function initSinPresentarse() {
       const missing = currentRows.filter(d => !known.has(sinSig(d)));
       if (missing.length === 0) { renderSin(list); return; }
       postSinSequential(missing)
-        .then(() => fetch(APPS_SCRIPT_URL + '?t=sin').then(r => r.json()))
+        .then(() => fetch(APPS_SCRIPT_URL + '?t=sin&_=' + Date.now()).then(r => r.json()))
         .then(final => renderSin(Array.isArray(final) ? final : list.concat(missing)))
         .catch(() => renderSin(list.concat(missing)));
     })
