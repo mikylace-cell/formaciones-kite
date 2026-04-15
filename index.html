@@ -33,6 +33,12 @@ tr:hover { background-color: #eef6fc; }
 .msg.ok { background: #d4efdf; color: #1e7e4a; display: block; }
 .msg.err { background: #fadbd8; color: #a93226; display: block; }
 .hint { font-size: 0.82em; color: #7f8c8d; grid-column: 2; margin-top: -8px; }
+#tbl2 td.editable { cursor: text; }
+#tbl2 td.editable:hover { background: #fff8dc; }
+#tbl2 td.editable:focus { outline: 2px solid #3498db; background: #fffbe6; white-space: pre-wrap; }
+#tbl2 td.saving { background: #eaf4fb; }
+#tbl2 td.saved { background: #d4efdf; transition: background 1.2s; }
+#tbl2 td.err { background: #fadbd8; }
 </style>
 </head>
 <body>
@@ -620,7 +626,8 @@ function resetForm() {
 fetch(APPS_SCRIPT_URL)
   .then(r => r.json())
   .then(list => { list.forEach(addRowFromData); sortRows(); update(); update2(); })
-  .catch(() => {});
+  .catch(() => {})
+  .finally(() => { initSinPresentarse(); });
 
 // Guardar nueva formación
 form.addEventListener('submit', e => {
@@ -663,6 +670,99 @@ form.addEventListener('submit', e => {
   })
   .finally(() => { btn.disabled = false; });
 });
+
+// ─── EDICIÓN PERSISTENTE TAB "SIN PRESENTARSE" ────────────────────────────────
+const SIN_FIELDS = ['cliente','formador','cambios','cuando','ticketid','tipo','convocada'];
+const SIN_EDITABLE_IDX = [1,2,3,4,5]; // formador, cambios, cuando, ticketid, tipo
+
+function uuid() {
+  return (crypto && crypto.randomUUID) ? crypto.randomUUID()
+    : 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2,10);
+}
+
+function buildSinRow(d) {
+  const tr = document.createElement('tr');
+  tr.dataset.id = d.id;
+  tr.innerHTML = SIN_FIELDS.map(f => `<td>${(d[f]||'').toString().replace(/</g,'&lt;')}</td>`).join('');
+  SIN_EDITABLE_IDX.forEach(i => {
+    const td = tr.children[i];
+    td.classList.add('editable');
+    td.contentEditable = 'true';
+    td.dataset.field = SIN_FIELDS[i];
+    td.dataset.original = td.textContent;
+    td.addEventListener('focus', () => { td.dataset.original = td.textContent; });
+    td.addEventListener('blur', () => saveSinCell(tr.dataset.id, td));
+    td.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); td.blur(); }
+      if (e.key === 'Escape') { td.textContent = td.dataset.original; td.blur(); }
+    });
+  });
+  return tr;
+}
+
+function saveSinCell(id, td) {
+  const val = td.textContent;
+  if (val === td.dataset.original) return;
+  td.classList.remove('err','saved');
+  td.classList.add('saving');
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'updateSin', id, field: td.dataset.field, value: val })
+  }).then(() => {
+    td.classList.remove('saving');
+    td.classList.add('saved');
+    td.dataset.original = val;
+    setTimeout(() => td.classList.remove('saved'), 1500);
+  }).catch(() => {
+    td.classList.remove('saving');
+    td.classList.add('err');
+  });
+}
+
+function rowToData(tr) {
+  const c = tr.children;
+  return {
+    id: tr.dataset.id || uuid(),
+    cliente:   c[0] ? c[0].textContent.trim() : '',
+    formador:  c[1] ? c[1].textContent.trim() : '',
+    cambios:   c[2] ? c[2].textContent.trim() : '',
+    cuando:    c[3] ? c[3].textContent.trim() : '',
+    ticketid:  c[4] ? c[4].textContent.trim() : '',
+    tipo:      c[5] ? c[5].textContent.trim() : '',
+    convocada: c[6] ? c[6].textContent.trim() : 'SI'
+  };
+}
+
+function initSinPresentarse() {
+  fetch(APPS_SCRIPT_URL + '?t=sin')
+    .then(r => r.json())
+    .then(list => {
+      if (!Array.isArray(list)) list = [];
+      if (list.length === 0) {
+        // Seed: volcar filas actuales (hardcoded + movidas por SIN_RE) a Sheets
+        const seeds = [...tbody2.querySelectorAll('tr')].map(rowToData);
+        if (seeds.length === 0) return;
+        Promise.all(seeds.map(d => fetch(APPS_SCRIPT_URL, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ action: 'addSin', ...d })
+        }))).then(() => renderSin(seeds));
+      } else {
+        renderSin(list);
+      }
+    })
+    .catch(() => {});
+}
+
+function renderSin(list) {
+  tbody2.innerHTML = '';
+  list.forEach(d => tbody2.appendChild(buildSinRow(d)));
+  sortTbody(tbody2);
+  update2();
+}
+
+// init se dispara al completar el fetch principal (más arriba)
 </script>
 </body>
 </html>
