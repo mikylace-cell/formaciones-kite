@@ -39,6 +39,17 @@ tr:hover { background-color: #eef6fc; }
 #tbl2 td.saving { background: #eaf4fb; }
 #tbl2 td.saved { background: #d4efdf; transition: background 1.2s; }
 #tbl2 td.err { background: #fadbd8; }
+/* ── Modal email ── */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal-box { background:white; border-radius:8px; padding:24px; width:min(520px,92vw); box-shadow:0 4px 24px rgba(0,0,0,0.2); }
+.modal-box h2 { margin:0 0 16px; color:#2c3e50; font-size:1.1em; }
+.modal-box label { display:block; font-weight:600; margin:12px 0 4px; font-size:0.95em; }
+.modal-box textarea, .modal-box input[type=text] { width:100%; box-sizing:border-box; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:0.95em; }
+.modal-box textarea { resize:vertical; }
+.modal-actions { display:flex; gap:10px; margin-top:16px; }
+.btn-secondary { background:#ecf0f1; color:#333; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-size:0.95em; }
+.hint-inline { font-weight:normal; font-size:0.82em; color:#7f8c8d; }
 </style>
 </head>
 <body>
@@ -460,6 +471,8 @@ tr:hover { background-color: #eef6fc; }
 </select>
 <label for="f-fecha">Fecha convocatoria *</label>
 <input id="f-fecha" name="fecha" type="date" required value="">
+<label for="f-hora">Hora convocatoria *</label>
+<input id="f-hora" name="hora" type="time" required value="11:00">
 <label for="f-caso">Caso asociado *</label>
 <input id="f-caso" name="caso" required pattern="(CS|SCTASK)[0-9]{7}" placeholder="CS0516276 / SCTASK0048091" maxlength="13" style="text-transform:uppercase">
 <span class="hint">Formato: CS o SCTASK seguido de 7 dígitos (ej. CS0516276 o SCTASK0048091)</span>
@@ -632,6 +645,7 @@ function addRowFromData(d) {
 function resetForm() {
   form.reset();
   document.getElementById('f-fecha').value = new Date().toISOString().slice(0,10);
+  document.getElementById('f-hora').value = '11:00';
   document.getElementById('f-tipo').value = 'Presencial';
   syncCasoRequired();
 }
@@ -657,6 +671,7 @@ form.addEventListener('submit', e => {
     cliente: document.getElementById('f-cliente').value.trim(),
     formador: document.getElementById('f-formador').value.trim(),
     fecha:    document.getElementById('f-fecha').value,
+    hora:     document.getElementById('f-hora').value || '11:00',
     caso:     caso.value.trim(),
     tipo:     fTipo.value
   };
@@ -677,6 +692,7 @@ form.addEventListener('submit', e => {
     resetForm();
     msg.textContent = '✅ Formación guardada en Google Sheets y visible para todos.';
     msg.className = 'msg ok';
+    showEmailModal(data);
   })
   .catch(err => {
     msg.textContent = '❌ Error al guardar: ' + err.message;
@@ -833,6 +849,92 @@ function renderSin(list) {
 }
 
 // init se dispara al completar el fetch principal (más arriba)
+
+// ─── MODAL EMAIL ──────────────────────────────────────────────────────────────
+const DIAS_ES   = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const MESES_ES  = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+function fechaEspanol(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  const dow = new Date(y, m - 1, d).getDay();
+  return `${DIAS_ES[dow]}, ${d} de ${MESES_ES[m - 1]}`;
+}
+
+function buildEmailHtml(d) {
+  const BANNER = 'https://mikylace-cell.github.io/formaciones-kite/banner.png';
+  const fechaStr = fechaEspanol(d.fecha);
+  const hora = d.hora || '11:00';
+  return `<!DOCTYPE html><html><body style="font-family:'Segoe UI',Arial,sans-serif;color:#333;max-width:680px;margin:auto;padding:0 16px 24px;">
+<img src="${BANNER}" alt="Telefónica Tech – Kite" style="width:100%;max-width:680px;display:block;margin-bottom:20px;border-radius:4px;">
+<p>Estimado cliente,</p>
+<p>Le convocamos a la Sesión Formativa de Kite Platform que tendrá lugar el <strong>${fechaStr} a las ${hora}</strong></p>
+<p>La sesión durará aproximadamente media hora y se realizará a través de la herramienta TEAMS. Para participar, solo necesita un ordenador con acceso a Internet. No es necesario que conecte la webcam, para optimizar el ancho de banda y no tener interrupciones en la llamada. Para el audio, le recomendamos que utilice auriculares para seguir mejor la sesión y comunicarse con nosotros con más claridad.</p>
+<p>Aprovechamos el presente correo para compartir con vosotros las video formaciones disponibles a día de hoy y el manual online, para empezar a familiarizar con la plataforma. Todos los apartados se encuentran disponibles a las siguientes direcciones:</p>
+<p><strong>Videos Online:</strong> <a href="https://es.kite.telefonicatech.com/online-help/es-customer/videos/tutoriales-de-la-plataforma">Tutoriales-de-la-plataforma</a></p>
+<p><strong>Manual Online:</strong> <a href="https://es.kite.telefonicatech.com/online-help/es-customer/manuales-para-clientes/manual-de-usuario-para-clientes">es.kite.telefonicatech.com/online-help/es-customer/manuales-para-clientes/manual-de-usuario-para-clientes</a><br>
+<em>(¡Recuerde que es necesario acceder previamente a la plataforma para visualizar los contenidos!)</em></p>
+<p>En caso de que tenga alguna pregunta o consulta, le invitamos a ponerse en contacto con el equipo de Telefónica Tech Conectividad IoT a través de la dirección de correo electrónico <a href="mailto:conectividadiot.tech@telefonica.com">conectividadiot.tech@telefonica.com</a>, llamando al <strong>900 998 255</strong> o bien escribiendo al número de WhatsApp: <strong>+34 646 346 420</strong>. Estaremos encantados de ayudarle en todo lo que necesite.</p>
+<p>Agradecemos su atención y quedamos a su disposición para cualquier duda.</p>
+<p>Atentamente,<br><strong>ProvN2</strong></p>
+<p>Por favor, confirme su asistencia aceptando o rechazando esta invitación, y si lo cree conveniente, reenvíe esta invitación a quien considere necesario.</p>
+<p>A continuación, le indicamos el enlace para acceder a la reunión.</p>
+</body></html>`;
+}
+
+let _emailData = null;
+const modalEmail = document.getElementById('modal-email');
+
+function showEmailModal(data) {
+  _emailData = data;
+  document.getElementById('email-to').value = '';
+  document.getElementById('email-subject').value = 'Convocatoria Sesión Formativa Kite Platform';
+  const emsg = document.getElementById('email-msg');
+  emsg.className = 'msg'; emsg.textContent = '';
+  modalEmail.classList.add('open');
+  document.getElementById('email-to').focus();
+}
+
+document.getElementById('btn-cancel-email').addEventListener('click', () => {
+  modalEmail.classList.remove('open');
+});
+
+document.getElementById('btn-send-email').addEventListener('click', () => {
+  const to = document.getElementById('email-to').value.trim();
+  const subject = document.getElementById('email-subject').value.trim();
+  const emsg = document.getElementById('email-msg');
+  if (!to) { emsg.textContent = 'Indica al menos un destinatario.'; emsg.className = 'msg err'; return; }
+  const btn = document.getElementById('btn-send-email');
+  btn.disabled = true;
+  emsg.textContent = 'Enviando...'; emsg.className = 'msg ok';
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'sendEmail', to, subject, html: buildEmailHtml(_emailData) })
+  })
+  .then(() => {
+    emsg.textContent = '✅ Email enviado correctamente.';
+    emsg.className = 'msg ok';
+    setTimeout(() => modalEmail.classList.remove('open'), 2000);
+  })
+  .catch(err => { emsg.textContent = '❌ Error: ' + err.message; emsg.className = 'msg err'; })
+  .finally(() => { btn.disabled = false; });
+});
 </script>
+
+<!-- Modal email -->
+<div id="modal-email" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Enviar convocatoria por email</h2>
+    <label for="email-to">Destinatarios <span class="hint-inline">(separar con ; o ,)</span></label>
+    <textarea id="email-to" rows="3" placeholder="cliente@empresa.com; otro@empresa.com"></textarea>
+    <label for="email-subject">Asunto</label>
+    <input id="email-subject" type="text" value="Convocatoria Sesión Formativa Kite Platform">
+    <div class="modal-actions">
+      <button id="btn-send-email" class="btn-primary">Enviar email</button>
+      <button id="btn-cancel-email" class="btn-secondary">Omitir</button>
+    </div>
+    <div id="email-msg" class="msg"></div>
+  </div>
+</div>
 </body>
 </html>
