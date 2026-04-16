@@ -619,10 +619,11 @@ caso.addEventListener('input', () => { caso.value = caso.value.toUpperCase(); })
 syncCasoRequired();
 
 function addRowFromData(d) {
+  const ticket = d.ticketid || d.caso || 'Sin ticket';
   const moved = loadMoved();
-  if (moved.has(mainSig(d.cliente||'', d.caso||'Sin ticket'))) return;
+  if (moved.has(mainSig(d.cliente||'', ticket))) return;
   const tr = document.createElement('tr');
-  tr.innerHTML = `<td>${d.cliente||''}</td><td>${d.formador||''}</td><td>${d.formador||''}</td><td>${d.fecha||''}</td><td>${d.caso||'Sin ticket'}</td><td>${d.tipo||''}</td><td>${d.convocada||'SI'}</td>`;
+  tr.innerHTML = `<td>${d.cliente||''}</td><td>${d.formador||''}</td><td>${d.formador||''}</td><td>${d.fecha||''}</td><td>${ticket}</td><td>${d.tipo||''}</td><td>${d.convocada||'SI'}</td>`;
   const target = SIN_RE.test(tr.textContent) ? tbody2 : tbody;
   target.appendChild(tr);
   if (target === tbody) decorateRealizada(tr);
