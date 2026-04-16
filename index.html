@@ -484,12 +484,17 @@ const SIN_RE = /cancelad|no se presenta/i;
   if (SIN_RE.test(r.textContent)) tbody2.appendChild(r);
 });
 
+const MOVED_KEY = 'movedToSin';
+function loadMoved() { try { return new Set(JSON.parse(localStorage.getItem(MOVED_KEY) || '[]')); } catch { return new Set(); } }
+function saveMoved(s) { try { localStorage.setItem(MOVED_KEY, JSON.stringify([...s])); } catch {} }
+function mainSig(cliente, ticketid) { return (cliente+'|'+ticketid).toLowerCase().trim(); }
+
 const TODAY_STR = new Date().toISOString().slice(0,10);
 function decorateRealizada(tr) {
   if (tr.children.length >= 8) return;
   const fecha = (tr.children[3] && tr.children[3].textContent.trim()) || '';
   const td = document.createElement('td');
-  if (fecha && fecha > TODAY_STR) {
+  if (!fecha || fecha >= TODAY_STR) {
     const sel = document.createElement('select');
     sel.innerHTML = '<option value="SI" selected>SI</option><option value="NO">NO</option>';
     sel.addEventListener('change', () => {
@@ -501,6 +506,14 @@ function decorateRealizada(tr) {
   }
   tr.appendChild(td);
 }
+(() => {
+  const moved = loadMoved();
+  [...tbody.querySelectorAll('tr')].forEach(tr => {
+    const c = tr.children;
+    const sig = ((c[0]?.textContent||'').trim()+'|'+(c[4]?.textContent||'').trim()).toLowerCase();
+    if (moved.has(sig)) tr.remove();
+  });
+})();
 [...tbody.querySelectorAll('tr')].forEach(decorateRealizada);
 
 function moveRowToSin(tr) {
@@ -514,6 +527,9 @@ function moveRowToSin(tr) {
     tipo:     (c[5]?.textContent || '').trim(),
     convocada: 'SI'
   };
+  const moved = loadMoved();
+  moved.add(mainSig(d.cliente, d.ticketid));
+  saveMoved(moved);
   fetch(APPS_SCRIPT_URL, {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'text/plain' },
@@ -603,6 +619,8 @@ caso.addEventListener('input', () => { caso.value = caso.value.toUpperCase(); })
 syncCasoRequired();
 
 function addRowFromData(d) {
+  const moved = loadMoved();
+  if (moved.has(mainSig(d.cliente||'', d.caso||'Sin ticket'))) return;
   const tr = document.createElement('tr');
   tr.innerHTML = `<td>${d.cliente||''}</td><td>${d.formador||''}</td><td>${d.formador||''}</td><td>${d.fecha||''}</td><td>${d.caso||'Sin ticket'}</td><td>${d.tipo||''}</td><td>${d.convocada||'SI'}</td>`;
   const target = SIN_RE.test(tr.textContent) ? tbody2 : tbody;
@@ -804,7 +822,13 @@ function renderSin(list) {
     return kb.localeCompare(ka);
   });
   rs.forEach(r => tbody2.appendChild(r));
-  update2();
+  const sigs = new Set(list.map(d => ((d.cliente||'')+'|'+(d.formador||'')+'|'+(d.ticketid||'')).toLowerCase().trim()));
+  [...tbody.querySelectorAll('tr')].forEach(tr => {
+    const c = tr.children;
+    const sig = ((c[0]?.textContent||'').trim()+'|'+(c[3]?.textContent||'').trim()+'|'+(c[4]?.textContent||'').trim()).toLowerCase();
+    if (sigs.has(sig)) tr.remove();
+  });
+  update(); update2();
 }
 
 // init se dispara al completar el fetch principal (más arriba)
