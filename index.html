@@ -489,6 +489,23 @@ tr:hover { background-color: #eef6fc; }
 </form>
 </div>
 </div>
+
+<!-- Modal email (debe estar en el DOM antes del script) -->
+<div id="modal-email" class="modal-overlay">
+  <div class="modal-box">
+    <h2>Enviar convocatoria por email</h2>
+    <label for="email-to">Destinatarios <span class="hint-inline">(separar con ; o ,)</span></label>
+    <textarea id="email-to" rows="3" placeholder="cliente@empresa.com; otro@empresa.com"></textarea>
+    <label for="email-subject">Asunto</label>
+    <input id="email-subject" type="text" value="Convocatoria Sesión Formativa Kite Platform">
+    <div class="modal-actions">
+      <button id="btn-send-email" class="btn-primary">Enviar email</button>
+      <button id="btn-cancel-email" class="btn-secondary">Omitir</button>
+    </div>
+    <div id="email-msg" class="msg"></div>
+  </div>
+</div>
+
 <script>
 const tbody = document.querySelector('#tbl tbody');
 const tbody2 = document.querySelector('#tbl2 tbody');
@@ -860,10 +877,22 @@ function fechaEspanol(iso) {
   return `${DIAS_ES[dow]}, ${d} de ${MESES_ES[m - 1]}`;
 }
 
+function buildOutlookLink(fecha, hora) {
+  const [y, m, d] = fecha.split('-').map(Number);
+  const [hh, mm] = (hora || '11:00').split(':').map(Number);
+  const start = new Date(y, m - 1, d, hh, mm, 0);
+  const end   = new Date(start.getTime() + 30 * 60 * 1000);
+  const fmt = dt =>
+    `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}T${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}:00`;
+  const body = encodeURIComponent('Sesión Formativa Kite Platform – Microsoft Teams');
+  return `https://outlook.cloud.microsoft/calendar/deeplink/compose?subject=${encodeURIComponent('Sesión Formativa Kite Platform')}&startdt=${fmt(start)}&enddt=${fmt(end)}&body=${body}&location=${encodeURIComponent('Microsoft Teams')}`;
+}
+
 function buildEmailHtml(d) {
   const BANNER = 'https://mikylace-cell.github.io/formaciones-kite/banner.png';
   const fechaStr = fechaEspanol(d.fecha);
   const hora = d.hora || '11:00';
+  const outlookLink = buildOutlookLink(d.fecha, hora);
   return `<!DOCTYPE html><html><body style="font-family:'Segoe UI',Arial,sans-serif;color:#333;max-width:680px;margin:auto;padding:0 16px 24px;">
 <img src="${BANNER}" alt="Telefónica Tech – Kite" style="width:100%;max-width:680px;display:block;margin-bottom:20px;border-radius:4px;">
 <p>Estimado cliente,</p>
@@ -878,6 +907,9 @@ function buildEmailHtml(d) {
 <p>Atentamente,<br><strong>ProvN2</strong></p>
 <p>Por favor, confirme su asistencia aceptando o rechazando esta invitación, y si lo cree conveniente, reenvíe esta invitación a quien considere necesario.</p>
 <p>A continuación, le indicamos el enlace para acceder a la reunión.</p>
+<p style="margin-top:20px;">
+  <a href="${outlookLink}" style="display:inline-block;background:#0078d4;color:white;text-decoration:none;padding:10px 18px;border-radius:4px;font-weight:600;">📅 Añadir a Outlook 365</a>
+</p>
 </body></html>`;
 }
 
@@ -921,20 +953,5 @@ document.getElementById('btn-send-email').addEventListener('click', () => {
 });
 </script>
 
-<!-- Modal email -->
-<div id="modal-email" class="modal-overlay">
-  <div class="modal-box">
-    <h2>Enviar convocatoria por email</h2>
-    <label for="email-to">Destinatarios <span class="hint-inline">(separar con ; o ,)</span></label>
-    <textarea id="email-to" rows="3" placeholder="cliente@empresa.com; otro@empresa.com"></textarea>
-    <label for="email-subject">Asunto</label>
-    <input id="email-subject" type="text" value="Convocatoria Sesión Formativa Kite Platform">
-    <div class="modal-actions">
-      <button id="btn-send-email" class="btn-primary">Enviar email</button>
-      <button id="btn-cancel-email" class="btn-secondary">Omitir</button>
-    </div>
-    <div id="email-msg" class="msg"></div>
-  </div>
-</div>
 </body>
 </html>
