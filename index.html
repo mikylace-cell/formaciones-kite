@@ -57,12 +57,12 @@ tr:hover { background-color: #eef6fc; }
 <div class="sticky-head">
 <h1>Calendario Formaciones</h1>
 <div class="tabs">
-<button class="tab" data-tab="listado">Formaciones realizadas</button>
-<button class="tab active" data-tab="sin">Sin presentarse</button>
+<button class="tab active" data-tab="listado">Formaciones realizadas</button>
+<button class="tab" data-tab="sin">Sin presentarse</button>
 <button class="tab" data-tab="nueva">+ Nueva Formación</button>
 </div>
 </div>
-<div class="panel" id="panel-listado">
+<div class="panel active" id="panel-listado">
 <div class="toolbar">
 <input type="search" id="q" placeholder="Filtrar por cliente, formador, fecha...">
 <span class="count" id="count"></span>
@@ -445,7 +445,7 @@ tr:hover { background-color: #eef6fc; }
 </tbody>
 </table></div>
 </div>
-<div class="panel active" id="panel-sin">
+<div class="panel" id="panel-sin">
 <div class="toolbar">
 <input type="search" id="q2" placeholder="Filtrar...">
 <span class="count" id="count2"></span>
@@ -656,7 +656,7 @@ function syncCasoRequired() {
   document.querySelector('label[for=f-caso]').innerHTML = 'Caso asociado' + (need ? ' *' : '');
 }
 fTipo.addEventListener('change', syncCasoRequired);
-caso.addEventListener('input', () => { caso.value = caso.value.toUpperCase(); });
+caso.addEventListener('input', () => { caso.value = caso.value.toUpperCase().replace(/\s+/g, ''); });
 syncCasoRequired();
 
 function addRowFromData(d) {
@@ -700,7 +700,7 @@ form.addEventListener('submit', e => {
     formador: document.getElementById('f-formador').value.trim(),
     fecha:    document.getElementById('f-fecha').value,
     hora:     document.getElementById('f-hora').value || '11:00',
-    caso:     caso.value.trim(),
+    caso:     caso.value.replace(/\s+/g, ''),
     tipo:     fTipo.value
   };
   const btn = form.querySelector('button[type=submit]');
