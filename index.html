@@ -897,7 +897,31 @@ function buildOutlookLink(fecha, hora, attendees) {
   const startStr = fmt(y, m, d, hh, mm);
   const endStr   = fmt(y, m, d, end_hh, mm);
   const subject = encodeURIComponent('Convocatoria Sesión Formativa Kite Platform');
-  const body = encodeURIComponent('Sesión Formativa Kite Platform – Microsoft Teams');
+  const fechaStr = fechaEspanol(fecha);
+  const bodyText = `Estimado cliente,
+
+Le convocamos a la Sesión Formativa de Kite Platform que tendrá lugar el ${fechaStr} a las ${hora || '11:00'}
+
+La sesión durará aproximadamente media hora y se realizará a través de la herramienta TEAMS. Para participar, solo necesita un ordenador con acceso a Internet. No es necesario que conecte la webcam, para optimizar el ancho de banda y no tener interrupciones en la llamada. Para el audio, le recomendamos que utilice auriculares para seguir mejor la sesión y comunicarse con nosotros con más claridad.
+
+Aprovechamos el presente correo para compartir con vosotros las video formaciones disponibles a día de hoy y el manual online, para empezar a familiarizar con la plataforma. Todos los apartados se encuentran disponibles a las siguientes direcciones:
+
+Videos Online: https://es.kite.telefonicatech.com/online-help/es-customer/videos/tutoriales-de-la-plataforma
+
+Manual Online: https://es.kite.telefonicatech.com/online-help/es-customer/manuales-para-clientes/manual-de-usuario-para-clientes
+(¡Recuerde que es necesario acceder previamente a la plataforma para visualizar los contenidos!)
+
+En caso de que tenga alguna pregunta o consulta, le invitamos a ponerse en contacto con el equipo de Telefónica Tech Conectividad IoT a través de la dirección de correo electrónico conectividadiot.tech@telefonica.com, llamando al 900 998 255 o bien escribiendo al número de WhatsApp: +34 646 346 420. Estaremos encantados de ayudarle en todo lo que necesite.
+
+Agradecemos su atención y quedamos a su disposición para cualquier duda.
+
+Atentamente,
+ProvN2
+
+Por favor, confirme su asistencia aceptando o rechazando esta invitación, y si lo cree conveniente, reenvíe esta invitación a quien considere necesario.
+
+A continuación, le indicamos el enlace para acceder a la reunión.`;
+  const body = encodeURIComponent(bodyText);
   const location = encodeURIComponent('Microsoft Teams');
   let url = `https://outlook.office.com/calendar/0/action/compose?subject=${subject}&startdt=${startStr}&enddt=${endStr}&body=${body}&location=${location}`;
   if (attendees) url += '&to=' + encodeURIComponent(attendees);
@@ -908,9 +932,8 @@ function buildEmailHtml(d) {
   const BANNER = 'https://mikylace-cell.github.io/formaciones-kite/banner.png';
   const fechaStr = fechaEspanol(d.fecha);
   const hora = d.hora || '11:00';
-  const outlookLink = buildOutlookLink(d.fecha, hora);
   return `<!DOCTYPE html><html><body style="font-family:'Segoe UI',Arial,sans-serif;color:#333;max-width:680px;margin:auto;padding:0 16px 24px;">
-<img src="${BANNER}" alt="Telefónica Tech – Kite" style="width:100%;max-width:680px;display:block;margin-bottom:20px;border-radius:4px;">
+<div style="text-align:center;"><img src="${BANNER}" alt="Telefónica Tech – Kite" style="max-width:680px;width:100%;display:inline-block;margin-bottom:20px;border-radius:4px;"></div>
 <p>Estimado cliente,</p>
 <p>Le convocamos a la Sesión Formativa de Kite Platform que tendrá lugar el <strong>${fechaStr} a las ${hora}</strong></p>
 <p>La sesión durará aproximadamente media hora y se realizará a través de la herramienta TEAMS. Para participar, solo necesita un ordenador con acceso a Internet. No es necesario que conecte la webcam, para optimizar el ancho de banda y no tener interrupciones en la llamada. Para el audio, le recomendamos que utilice auriculares para seguir mejor la sesión y comunicarse con nosotros con más claridad.</p>
@@ -923,9 +946,6 @@ function buildEmailHtml(d) {
 <p>Atentamente,<br><strong>ProvN2</strong></p>
 <p>Por favor, confirme su asistencia aceptando o rechazando esta invitación, y si lo cree conveniente, reenvíe esta invitación a quien considere necesario.</p>
 <p>A continuación, le indicamos el enlace para acceder a la reunión.</p>
-<p style="margin-top:20px;">
-  <a href="${outlookLink}" style="display:inline-block;background:#0078d4;color:white;text-decoration:none;padding:10px 18px;border-radius:4px;font-weight:600;">📅 Añadir a Outlook 365</a>
-</p>
 </body></html>`;
 }
 
