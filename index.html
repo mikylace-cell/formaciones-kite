@@ -934,7 +934,7 @@ function buildEmailHtml(d) {
   const BANNER = 'https://mikylace-cell.github.io/formaciones-kite/banner.png';
   const fechaStr = fechaEspanol(d.fecha);
   const hora = d.hora || '11:00';
-  return `<!DOCTYPE html><html><body style="font-family:'Segoe UI',Arial,sans-serif;color:#333;max-width:680px;margin:auto;padding:0 16px 24px;">
+  return `\x3c!DOCTYPE html>\x3chtml>\x3cbody style="font-family:'Segoe UI',Arial,sans-serif;color:#333;max-width:680px;margin:auto;padding:0 16px 24px;">
 <div style="text-align:center;"><img src="${BANNER}" alt="Telefónica Tech – Kite" style="max-width:680px;width:100%;display:inline-block;margin-bottom:20px;border-radius:4px;"></div>
 <p>Estimado cliente,</p>
 <p>Le convocamos a la Sesión Formativa de Kite Platform que tendrá lugar el <strong>${fechaStr} a las ${hora}</strong></p>
@@ -948,7 +948,7 @@ function buildEmailHtml(d) {
 <p>Atentamente,<br><strong>ProvN2</strong></p>
 <p>Por favor, confirme su asistencia aceptando o rechazando esta invitación, y si lo cree conveniente, reenvíe esta invitación a quien considere necesario.</p>
 <p>A continuación, le indicamos el enlace para acceder a la reunión.</p>
-</body></html>`;
+\x3c/body>\x3c/html>`;
 }
 
 let _emailData = null;

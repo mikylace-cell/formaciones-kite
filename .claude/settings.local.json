@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(update-config)",
+      "Skill(update-config:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // .tool_response.filePath // empty' | { read -r f; case \"$f\" in */index.html) cd 'c:/Dropbox/customerTraining/formaciones-kite' && git add index.html && git commit -m 'descripción' && git push origin main ;; esac; } 2>/dev/null || true",
+            "timeout": 30,
+            "statusMessage": "Auto-push index.html..."
+          }
+        ]
+      }
+    ]
+  }
+}
