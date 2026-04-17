@@ -920,7 +920,6 @@ const modalEmail = document.getElementById('modal-email');
 function showEmailModal(data) {
   _emailData = data;
   document.getElementById('email-to').value = '';
-  document.getElementById('email-subject').value = 'Convocatoria Sesión Formativa Kite Platform';
   const emsg = document.getElementById('email-msg');
   emsg.className = 'msg'; emsg.textContent = '';
   modalEmail.classList.add('open');
