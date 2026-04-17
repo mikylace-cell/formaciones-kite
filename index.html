@@ -898,30 +898,32 @@ function buildOutlookLink(fecha, hora, attendees) {
   const endStr   = fmt(y, m, d, end_hh, mm);
   const subject = encodeURIComponent('Convocatoria Sesión Formativa Kite Platform');
   const fechaStr = fechaEspanol(fecha);
-  const bodyText = `Estimado cliente,
-
-Le convocamos a la Sesión Formativa de Kite Platform que tendrá lugar el ${fechaStr} a las ${hora || '11:00'}
-
-La sesión durará aproximadamente media hora y se realizará a través de la herramienta TEAMS. Para participar, solo necesita un ordenador con acceso a Internet. No es necesario que conecte la webcam, para optimizar el ancho de banda y no tener interrupciones en la llamada. Para el audio, le recomendamos que utilice auriculares para seguir mejor la sesión y comunicarse con nosotros con más claridad.
-
-Aprovechamos el presente correo para compartir con vosotros las video formaciones disponibles a día de hoy y el manual online, para empezar a familiarizar con la plataforma. Todos los apartados se encuentran disponibles a las siguientes direcciones:
-
-Videos Online: https://es.kite.telefonicatech.com/online-help/es-customer/videos/tutoriales-de-la-plataforma
-
-Manual Online: https://es.kite.telefonicatech.com/online-help/es-customer/manuales-para-clientes/manual-de-usuario-para-clientes
-(¡Recuerde que es necesario acceder previamente a la plataforma para visualizar los contenidos!)
-
-En caso de que tenga alguna pregunta o consulta, le invitamos a ponerse en contacto con el equipo de Telefónica Tech Conectividad IoT a través de la dirección de correo electrónico conectividadiot.tech@telefonica.com, llamando al 900 998 255 o bien escribiendo al número de WhatsApp: +34 646 346 420. Estaremos encantados de ayudarle en todo lo que necesite.
-
-Agradecemos su atención y quedamos a su disposición para cualquier duda.
-
-Atentamente,
-ProvN2
-
-Por favor, confirme su asistencia aceptando o rechazando esta invitación, y si lo cree conveniente, reenvíe esta invitación a quien considere necesario.
-
-A continuación, le indicamos el enlace para acceder a la reunión.`;
-  const body = encodeURIComponent(bodyText);
+  const BANNER = 'https://mikylace-cell.github.io/formaciones-kite/banner.png';
+  const bodyHtml = `<div style="font-family:'Segoe UI',Arial,sans-serif;font-size:14px;color:#333;line-height:1.5;">`
+    + `<div style="text-align:center;margin-bottom:16px;"><img src="${BANNER}" alt="Telefónica Tech - Kite" style="max-width:600px;width:100%;"></div>`
+    + `<p>Estimado cliente,</p>`
+    + `<p>Le convocamos a la <strong>Sesión Formativa de Kite Platform</strong> que tendrá lugar el <strong>${fechaStr}</strong> a las <strong>${hora || '11:00'}</strong>.</p>`
+    + `<p>La sesión durará aproximadamente media hora y se realizará a través de la herramienta <strong>TEAMS</strong>. Para participar, solo necesita un ordenador con acceso a Internet. No es necesario que conecte la webcam, para optimizar el ancho de banda y no tener interrupciones en la llamada. Para el audio, le recomendamos que utilice auriculares para seguir mejor la sesión y comunicarse con nosotros con más claridad.</p>`
+    + `<p>Aprovechamos el presente correo para compartir con vosotros las video formaciones disponibles a día de hoy y el manual online, para empezar a familiarizar con la plataforma. Todos los apartados se encuentran disponibles a las siguientes direcciones:</p>`
+    + `<ul style="margin:8px 0;padding-left:20px;">`
+    + `<li><strong>Videos Online:</strong> <a href="https://es.kite.telefonicatech.com/online-help/es-customer/videos/tutoriales-de-la-plataforma">Tutoriales de la plataforma</a></li>`
+    + `<li><strong>Manual Online:</strong> <a href="https://es.kite.telefonicatech.com/online-help/es-customer/manuales-para-clientes/manual-de-usuario-para-clientes">Manual de usuario para clientes</a></li>`
+    + `</ul>`
+    + `<p style="font-style:italic;color:#666;">(¡Recuerde que es necesario acceder previamente a la plataforma para visualizar los contenidos!)</p>`
+    + `<p>En caso de que tenga alguna pregunta o consulta, le invitamos a ponerse en contacto con el equipo de <strong>Telefónica Tech Conectividad IoT</strong>:</p>`
+    + `<ul style="margin:8px 0;padding-left:20px;">`
+    + `<li>Email: <a href="mailto:conectividadiot.tech@telefonica.com">conectividadiot.tech@telefonica.com</a></li>`
+    + `<li>Teléfono: <strong>900 998 255</strong></li>`
+    + `<li>WhatsApp: <strong>+34 646 346 420</strong></li>`
+    + `</ul>`
+    + `<p>Estaremos encantados de ayudarle en todo lo que necesite.</p>`
+    + `<p>Agradecemos su atención y quedamos a su disposición para cualquier duda.</p>`
+    + `<p>Atentamente,<br><strong>ProvN2</strong></p>`
+    + `<hr style="border:none;border-top:1px solid #ddd;margin:16px 0;">`
+    + `<p style="font-size:13px;color:#555;">Por favor, confirme su asistencia aceptando o rechazando esta invitación, y si lo cree conveniente, reenvíe esta invitación a quien considere necesario.</p>`
+    + `<p style="font-size:13px;color:#555;">A continuación, le indicamos el enlace para acceder a la reunión.</p>`
+    + `</div>`;
+  const body = encodeURIComponent(bodyHtml);
   const location = encodeURIComponent('Microsoft Teams');
   let url = `https://outlook.office.com/calendar/0/action/compose?subject=${subject}&startdt=${startStr}&enddt=${endStr}&body=${body}&location=${location}`;
   if (attendees) url += '&to=' + encodeURIComponent(attendees);
