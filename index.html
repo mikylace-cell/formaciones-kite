@@ -493,14 +493,12 @@ tr:hover { background-color: #eef6fc; }
 <!-- Modal email (debe estar en el DOM antes del script) -->
 <div id="modal-email" class="modal-overlay">
   <div class="modal-box">
-    <h2>Enviar convocatoria por email</h2>
-    <label for="email-to">Destinatarios <span class="hint-inline">(separar con ; o ,)</span></label>
+    <h2>Crear convocatoria en Outlook</h2>
+    <label for="email-to">Asistentes <span class="hint-inline">(separar con ; o ,)</span></label>
     <textarea id="email-to" rows="3" placeholder="cliente@empresa.com; otro@empresa.com"></textarea>
-    <label for="email-subject">Asunto</label>
-    <input id="email-subject" type="text" value="Convocatoria Sesión Formativa Kite Platform">
     <div class="modal-actions">
-      <button id="btn-send-email" class="btn-primary">Enviar email</button>
-      <button id="btn-cancel-email" class="btn-secondary">Omitir</button>
+      <button id="btn-send-email" class="btn-primary">📅 Abrir convocatoria en Outlook</button>
+      <button id="btn-cancel-email" class="btn-secondary">Cancelar</button>
     </div>
     <div id="email-msg" class="msg"></div>
   </div>
@@ -877,15 +875,18 @@ function fechaEspanol(iso) {
   return `${DIAS_ES[dow]}, ${d} de ${MESES_ES[m - 1]}`;
 }
 
-function buildOutlookLink(fecha, hora) {
+function buildOutlookLink(fecha, hora, attendees) {
   const [y, m, d] = fecha.split('-').map(Number);
   const [hh, mm] = (hora || '11:00').split(':').map(Number);
   const start = new Date(y, m - 1, d, hh, mm, 0);
   const end   = new Date(start.getTime() + 30 * 60 * 1000);
-  const fmt = dt =>
-    `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}T${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}:00`;
+  const fmt = dt => dt.toISOString().replace(/\.\d{3}Z$/, '+00:00');
+  const subject = encodeURIComponent('Convocatoria Sesión Formativa Kite Platform');
   const body = encodeURIComponent('Sesión Formativa Kite Platform – Microsoft Teams');
-  return `https://outlook.cloud.microsoft/calendar/deeplink/compose?subject=${encodeURIComponent('Sesión Formativa Kite Platform')}&startdt=${fmt(start)}&enddt=${fmt(end)}&body=${body}&location=${encodeURIComponent('Microsoft Teams')}`;
+  const location = encodeURIComponent('Microsoft Teams');
+  let url = `https://outlook.office.com/calendar/0/action/compose?subject=${subject}&startdt=${fmt(start)}&enddt=${fmt(end)}&body=${body}&location=${location}`;
+  if (attendees) url += '&to=' + encodeURIComponent(attendees);
+  return url;
 }
 
 function buildEmailHtml(d) {
@@ -932,24 +933,13 @@ document.getElementById('btn-cancel-email').addEventListener('click', () => {
 
 document.getElementById('btn-send-email').addEventListener('click', () => {
   const to = document.getElementById('email-to').value.trim();
-  const subject = document.getElementById('email-subject').value.trim();
   const emsg = document.getElementById('email-msg');
-  if (!to) { emsg.textContent = 'Indica al menos un destinatario.'; emsg.className = 'msg err'; return; }
-  const btn = document.getElementById('btn-send-email');
-  btn.disabled = true;
-  emsg.textContent = 'Enviando...'; emsg.className = 'msg ok';
-  fetch(APPS_SCRIPT_URL, {
-    method: 'POST', mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({ action: 'sendEmail', to, subject, html: buildEmailHtml(_emailData) })
-  })
-  .then(() => {
-    emsg.textContent = '✅ Email enviado correctamente.';
-    emsg.className = 'msg ok';
-    setTimeout(() => modalEmail.classList.remove('open'), 2000);
-  })
-  .catch(err => { emsg.textContent = '❌ Error: ' + err.message; emsg.className = 'msg err'; })
-  .finally(() => { btn.disabled = false; });
+  if (!to) { emsg.textContent = 'Indica al menos un asistente.'; emsg.className = 'msg err'; return; }
+  const hora = _emailData.hora || '11:00';
+  const attendees = to.replace(/[,]/g, ';');
+  const url = buildOutlookLink(_emailData.fecha, hora, attendees);
+  window.open(url, '_blank');
+  modalEmail.classList.remove('open');
 });
 </script>
 
